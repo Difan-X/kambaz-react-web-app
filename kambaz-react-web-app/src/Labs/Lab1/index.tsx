@@ -2,6 +2,9 @@ export default function Lab1() {
     return (
         <div id="wd-lab1">
             <h2>Lab 1</h2>
+            <header id="wd-student-info">
+                <p>Difan Xie – Section 01</p>
+            </header>
             <h3>HTML Examples</h3>
             <div id="wd-h-tag">
                 <h4>Heading Tags</h4>
@@ -182,6 +185,8 @@ export default function Lab1() {
                            title="The last name"
                            id="wd-text-fields-last-name" />
                     {/* copy rest of form elements here  */}
+                    <label htmlFor="wd-file-upload">Upload file:</label>
+                    <input type="file" id="wd-file-upload" /><br/>
                 </form>
             </div>
 
@@ -276,7 +281,9 @@ export default function Lab1() {
 
 
 
-
+            <footer id="wd-lab1-footer">
+                <p>Difan Xie – Section 01</p>
+            </footer>
         </div>
     );}
 
