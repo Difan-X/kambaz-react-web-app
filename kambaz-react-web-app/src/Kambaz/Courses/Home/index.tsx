@@ -1,15 +1,19 @@
+import "./styles.css";
 import Modules from "../Modules";
 import CourseStatus from "./Status";
+
 export default function Home() {
     return (
-        <table id="wd-home">
-            <tr>
-                <td valign="top">
-                    <Modules />
-                </td>
-                <td valign="top">
-                    <CourseStatus />
-                </td>
-            </tr>
-        </table>
-    );}
+        <div id="wd-home" className="d-flex">
+            {/* Main content area: Modules */}
+            <div className="flex-fill p-3">
+                <Modules />
+            </div>
+
+            {/* Sidebar: Course Status (hidden on smaller screens) */}
+            <div className="d-none d-xl-block" style={{ width: "300px", padding: "1rem" }}>
+                <CourseStatus />
+            </div>
+        </div>
+    );
+}
