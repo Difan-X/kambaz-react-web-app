@@ -27,11 +27,6 @@ export default function Dashboard() {
                 </h1>
                 <span id="wd-dashboard-published" className="text-muted small">
           Published Courses ({courses.length})
-                    {/* Published Courses sub-title */}
-                    <h2 id="wd-dashboard-published">
-                Published Courses ({courses.length})
-            </h2>
-            <hr />
         </span>
             </div>
             <hr />

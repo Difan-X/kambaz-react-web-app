@@ -90,3 +90,17 @@ body * {
     background-color: #fff !important;
     border-left: 4px solid #000;
 }
+
+.nav-pills .nav-link {
+    color: #c0392b;
+    text-decoration: none;
+}
+.nav-pills .nav-link:hover {
+    text-decoration: none;
+}
+
+.nav-pills .nav-link.active {
+    color: #000 !important;
+    background-color: #fff !important;
+    border-left: 4px solid #000;
+}

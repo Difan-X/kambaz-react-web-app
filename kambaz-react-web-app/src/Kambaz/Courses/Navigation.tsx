@@ -1,13 +1,12 @@
-import { NavLink } from "react-router-dom";
-import { ListGroup } from "react-bootstrap";
+import { NavLink } from 'react-router-dom';
+import { ListGroup } from 'react-bootstrap';
 
 export default function CourseNavigation() {
-    const base = "/Kambaz/Courses/1234";
-
+    const base = '/Kambaz/Courses/1234';
     return (
         <ListGroup
             id="wd-courses-navigation"
-            className="wd list-group fs-5 rounded-0"
+            className="fs-5 wd list-group rounded-0"
         >
             <ListGroup.Item
                 as={NavLink}
