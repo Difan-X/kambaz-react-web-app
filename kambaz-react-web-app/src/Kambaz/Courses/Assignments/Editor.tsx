@@ -1,167 +1,164 @@
-import { Link, useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import {
+    Row,
+    Col,
+    Card,
+    Form,
+    Button,
+} from "react-bootstrap";
 
 export default function AssignmentEditor() {
-    const { aid } = useParams();
+    const { aid } = useParams<{ aid: string }>();
 
     return (
-        <div id="wd-assignments-editor">
-            {/* Header */}
-            <h2>Edit Assignment</h2>
+        <div id="wd-assignments-editor" className="p-4">
+            <h4 className="text-danger mb-3">
+                CS5610 SU1 24 MON/FRI &gt; Assignments &gt; {aid}
+            </h4>
+            <hr />
 
-            {/* Assignment Name */}
-            <label htmlFor="wd-name">Assignment Name</label>
-            <input
-                id="wd-name"
-                type="text"
-                defaultValue={`A${aid} – Example Title`}
-            />
-            <br />
-            <br />
+            <Row>
+                <Col xl={8}>
+                    <Form>
+                        <Form.Group controlId="wd-name" className="mb-4">
+                            <Form.Label>Assignment Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                defaultValue={aid}
+                                placeholder={`A${aid}`}
+                            />
+                        </Form.Group>
 
-            {/* Description */}
-            <label htmlFor="wd-description">Description</label>
-            <textarea
-                id="wd-description"
-                rows={4}
-                defaultValue="The assignment is available online. Submit a link to your repo."
-            />
-            <br />
-            <br />
+                        <Form.Group controlId="wd-description" className="mb-4">
+                            <Form.Label>Description</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={8}
+                                defaultValue={`The assignment is available online.\nSubmit a link to the landing page of your Web application running on Netlify.`}
+                            />
+                        </Form.Group>
+                    </Form>
+                </Col>
 
-            <table>
-                {/* Points */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-points">Points</label>
-                    </td>
-                    <td>
-                        <input id="wd-points" type="number" defaultValue={100} />
-                    </td>
-                </tr>
-                {/* Group */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-group">Assignment Group</label>
-                    </td>
-                    <td>
-                        <select id="wd-group" defaultValue="assignments">
-                            <option value="assignments">Assignments</option>
-                            <option value="quizzes">Quizzes</option>
-                            <option value="exams">Exams</option>
-                            <option value="projects">Project</option>
-                        </select>
-                    </td>
-                </tr>
-                {/* Display Grade As */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-display-grade-as">Display Grade As</label>
-                    </td>
-                    <td>
-                        <select id="wd-display-grade-as" defaultValue="percentage">
-                            <option value="percentage">Percentage</option>
-                            <option value="points">Points</option>
-                            <option value="letter">Letter Grade</option>
-                        </select>
-                    </td>
-                </tr>
-                {/* Submission Type */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-submission-type">Submission Type</label>
-                    </td>
-                    <td>
-                        <select id="wd-submission-type" defaultValue="online">
-                            <option value="online">Online</option>
-                            <option value="onpaper">On Paper</option>
-                        </select>
-                    </td>
-                </tr>
-                {/* Online Entry Options */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label>Online Entry Options</label>
-                    </td>
-                    <td>
-                        <input type="checkbox" id="wd-text-entry" defaultChecked />{" "}
-                        <label htmlFor="wd-text-entry">Text Entry</label>
-                        <br />
-                        <input type="checkbox" id="wd-website-url" />{" "}
-                        <label htmlFor="wd-website-url">Website URL</label>
-                        <br />
-                        <input type="checkbox" id="wd-media-recordings" />{" "}
-                        <label htmlFor="wd-media-recordings">Media Recordings</label>
-                        <br />
-                        <input type="checkbox" id="wd-student-annotation" />{" "}
-                        <label htmlFor="wd-student-annotation">Student Annotation</label>
-                        <br />
-                        <input type="checkbox" id="wd-file-upload" />{" "}
-                        <label htmlFor="wd-file-upload">File Upload</label>
-                    </td>
-                </tr>
-                {/* Assign To */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-assign-to">Assign To</label>
-                    </td>
-                    <td>
-                        <input
-                            id="wd-assign-to"
-                            type="text"
-                            defaultValue="Everyone"
-                        />
-                    </td>
-                </tr>
-                {/* Due Date */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-due-date">Due Date</label>
-                    </td>
-                    <td>
-                        <input
-                            id="wd-due-date"
-                            type="date"
-                            defaultValue="2025-05-15"
-                        />
-                    </td>
-                </tr>
-                {/* Available From */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-available-from">Available From</label>
-                    </td>
-                    <td>
-                        <input
-                            id="wd-available-from"
-                            type="date"
-                            defaultValue="2025-05-01"
-                        />
-                    </td>
-                </tr>
-                {/* Available Until */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-available-until">Available Until</label>
-                    </td>
-                    <td>
-                        <input
-                            id="wd-available-until"
-                            type="date"
-                            defaultValue="2025-05-30"
-                        />
-                    </td>
-                </tr>
-            </table>
+                <Col xl={4}>
+                    <Card className="mb-4">
+                        <Card.Body>
+                            {/* Points */}
+                            <Form.Group controlId="wd-points" className="mb-3">
+                                <Form.Label>Points</Form.Label>
+                                <Form.Control type="number" defaultValue={100} />
+                            </Form.Group>
 
-            <br />
+                            {/* Assignment Group */}
+                            <Form.Group controlId="wd-group" className="mb-3">
+                                <Form.Label>Assignment Group</Form.Label>
+                                <Form.Select defaultValue="ASSIGNMENTS">
+                                    <option value="ASSIGNMENTS">ASSIGNMENTS</option>
+                                    <option value="QUIZZES">QUIZZES</option>
+                                    <option value="EXAMS">EXAMS</option>
+                                    <option value="PROJECT">PROJECT</option>
+                                </Form.Select>
+                            </Form.Group>
 
-            {/* Save and Cancel Buttons */}
-            <Link to="../" id="wd-save-assignment">
-                <button>Save</button>
-            </Link>{" "}
-            <Link to="../" id="wd-cancel-assignment">
-                <button>Cancel</button>
-            </Link>
+                            {/* Display Grade As */}
+                            <Form.Group controlId="wd-display-grade-as" className="mb-3">
+                                <Form.Label>Display Grade as</Form.Label>
+                                <Form.Select defaultValue="Percentage">
+                                    <option>Percentage</option>
+                                    <option>Points</option>
+                                    <option>Letter Grade</option>
+                                </Form.Select>
+                            </Form.Group>
+
+                            {/* Submission Type */}
+                            <Form.Group controlId="wd-submission-type" className="mb-3">
+                                <Form.Label>Submission Type</Form.Label>
+                                <Form.Select defaultValue="Online">
+                                    <option>Online</option>
+                                    <option>On Paper</option>
+                                </Form.Select>
+                            </Form.Group>
+
+                            {/* Online Entry Options */}
+                            <Form.Group className="mb-3">
+                                <Form.Label>Online Entry Options</Form.Label>
+                                <div>
+                                    <Form.Check
+                                        type="checkbox"
+                                        id="wd-text-entry"
+                                        label="Text Entry"
+                                        defaultChecked
+                                    />
+                                    <Form.Check
+                                        type="checkbox"
+                                        id="wd-website-url"
+                                        label="Website URL"
+                                    />
+                                    <Form.Check
+                                        type="checkbox"
+                                        id="wd-media-recordings"
+                                        label="Media Recordings"
+                                    />
+                                    <Form.Check
+                                        type="checkbox"
+                                        id="wd-student-annotation"
+                                        label="Student Annotation"
+                                    />
+                                    <Form.Check
+                                        type="checkbox"
+                                        id="wd-file-upload"
+                                        label="File Uploads"
+                                    />
+                                </div>
+                            </Form.Group>
+                        </Card.Body>
+                    </Card>
+
+                    <Card className="mb-4">
+                        <Card.Body>
+                            {/* Assign To */}
+                            <Form.Group controlId="wd-assign-to" className="mb-3">
+                                <Form.Label>Assign To</Form.Label>
+                                <Form.Control type="text" defaultValue="Everyone" />
+                            </Form.Group>
+
+                            {/* Due Date */}
+                            <Form.Group controlId="wd-due-date" className="mb-3">
+                                <Form.Label>Due</Form.Label>
+                                <Form.Control type="date" defaultValue="2024-05-13" />
+                            </Form.Group>
+
+                            <Row>
+                                <Col>
+                                    {/* Available From */}
+                                    <Form.Group controlId="wd-available-from" className="mb-3">
+                                        <Form.Label>Available from</Form.Label>
+                                        <Form.Control type="date" defaultValue="2024-05-06" />
+                                    </Form.Group>
+                                </Col>
+                                <Col>
+                                    {/* Available Until */}
+                                    <Form.Group controlId="wd-available-until" className="mb-3">
+                                        <Form.Label>Until</Form.Label>
+                                        <Form.Control type="date" />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+
+            <div className="d-flex justify-content-end mt-4">
+                <Link to="../">
+                    <Button variant="light" className="me-2">
+                        Cancel
+                    </Button>
+                </Link>
+                <Link to="../">
+                    <Button variant="danger">Save</Button>
+                </Link>
+            </div>
         </div>
     );
 }

@@ -1,44 +1,46 @@
-import { Link } from "react-router-dom";
+import Nav from 'react-bootstrap/Nav';
+import { NavLink } from 'react-router-dom';
 
 export default function TOC() {
     return (
-        <ul id="wd-toc">
-            <li>
-                <Link to="/Labs" id="wd-labs-link">
+        <Nav variant="pills" className="mb-4">
+            <Nav.Item>
+                <Nav.Link as={NavLink} to="/Labs" end>
                     Labs
-                </Link>
-            </li>
-            <li>
-                <Link to="/Labs/Lab1" id="wd-lab1-link">
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link as={NavLink} to="/Labs/Lab1">
                     Lab 1
-                </Link>
-            </li>
-            <li>
-                <Link to="/Labs/Lab2" id="wd-lab2-link">
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link as={NavLink} to="/Labs/Lab2">
                     Lab 2
-                </Link>
-            </li>
-            <li>
-                <Link to="/Labs/Lab3" id="wd-lab3-link">
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link as={NavLink} to="/Labs/Lab3">
                     Lab 3
-                </Link>
-            </li>
-            <li>
-                <Link to="/Kambaz" id="wd-kambaz-link">
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link as={NavLink} to="/Kambaz">
                     Kambaz
-                </Link>
-            </li>
-            <li>
-                <a
-                    id="wd-github"
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link
                     href="https://github.com/Difan-X/kambaz-react-web-app"
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                 >
-                    GitHub Repo
-                </a>
-            </li>
-            <li id="wd-fullname">Difan Xie</li>
-        </ul>
+                    My GitHub Repo
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item className="nav-item disabled">
+                <span className="nav-link">Difan Xie</span>
+            </Nav.Item>
+        </Nav>
     );
 }

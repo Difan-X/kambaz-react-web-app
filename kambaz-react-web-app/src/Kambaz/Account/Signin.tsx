@@ -1,29 +1,30 @@
+import { Form, Button, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
 export default function Signin() {
     return (
-        <div id="wd-signin-screen">
-            <h3>Sign in</h3>
-            {/* username with a default */}
-            <input
-                type="text"
-                id="wd-text-fields-username"
-                defaultValue="alice"
-                className="wd-username"
-            /><br/>
-            {/* password with a default */}
-            <input
-                type="password"
-                id="wd-text-fields-password"
-                defaultValue="password123"
-                className="wd-password"
-            /><br/>
-            <Link id="wd-signin-btn" to="/Kambaz/Dashboard">
-                Sign in
-            </Link><br/>
-            <Link id="wd-signup-link" to="/Kambaz/Account/Signup">
-                Sign up
-            </Link>
-        </div>
+        <Card id="wd-signin-screen" className="p-4 shadow-sm">
+            <Card.Body>
+                <Card.Title>Sign In</Card.Title>
+                <Form>
+                    <Form.Group className="mb-3" controlId="wd-text-fields-username">
+                        <Form.Label>Username</Form.Label>
+                        <Form.Control type="text" placeholder="jdoe" />
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="wd-text-fields-password">
+                        <Form.Label>Password</Form.Label>
+                        <Form.Control type="password" placeholder="••••••" />
+                    </Form.Group>
+                    <Link to="/Kambaz/Account/Profile" id="wd-signin-btn">
+                        <Button variant="primary" className="w-100">Sign In</Button>
+                    </Link>
+                </Form>
+                <div className="text-center mt-3">
+                    <Link to="/Kambaz/Account/Signup" id="wd-signup-link">
+                        Need an account? Sign Up
+                    </Link>
+                </div>
+            </Card.Body>
+        </Card>
     );
 }

@@ -1,15 +1,66 @@
-import { Link } from "react-router-dom";
+import { Nav } from "react-bootstrap";
+import { NavLink } from "react-router-dom";
 
-export default function KambazNavigation() {
+export default function CourseNavigation() {
     return (
-        <div id="wd-kambaz-navigation">
-            <a href="https://www.northeastern.edu/" target="_blank" id="wd-neu-link">Northeastern</a><br/>
-            <Link to="/Kambaz/Account"      id="wd-account-link">Account</Link><br/>
-            <Link to="/Kambaz/Dashboard"    id="wd-dashboard-link">Dashboard</Link><br/>
-            <Link to="/Kambaz/Courses/1234" id="wd-course-link">Courses</Link><br/>
-            <Link to="/Kambaz/Calendar"     id="wd-calendar-link">Calendar</Link><br/>
-            <Link to="/Kambaz/Inbox"        id="wd-inbox-link">Inbox</Link><br/>
-            <Link to="/Labs"                id="wd-labs-link">Labs</Link><br/>
-        </div>
+        <Nav variant="pills" className="flex-column nav-pills fs-5 wd" id="wd-courses-navigation">
+            <Nav.Item>
+                <Nav.Link
+                    as={NavLink}
+                    to="Home"
+                    end
+                >
+                    Home
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link
+                    as={NavLink}
+                    to="Modules"
+                >
+                    Modules
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link
+                    as={NavLink}
+                    to="Piazza"
+                >
+                    Piazza
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link
+                    as={NavLink}
+                    to="Zoom"
+                >
+                    Zoom
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link
+                    as={NavLink}
+                    to="Assignments"
+                >
+                    Assignments
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link
+                    as={NavLink}
+                    to="Quizzes"
+                >
+                    Quizzes
+                </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link
+                    as={NavLink}
+                    to="People"
+                >
+                    People
+                </Nav.Link>
+            </Nav.Item>
+        </Nav>
     );
 }
