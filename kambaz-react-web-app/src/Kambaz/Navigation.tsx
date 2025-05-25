@@ -1,17 +1,58 @@
 import { ListGroup } from "react-bootstrap";
-import { NavLink } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FaRegCircleUser, FaInbox } from "react-icons/fa6";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { LiaBookSolid, LiaCogSolid } from "react-icons/lia";
 import { IoCalendarOutline } from "react-icons/io5";
 
 export default function KambazNavigation() {
-    const base = "list-group-item text-center border-0 text-danger";
+    const { pathname } = useLocation();
+
+    const links = [
+        {
+            label: "Account",
+            path: "/Kambaz/Account",
+            match: (p: string) => p.includes("/Account"),
+            icon: FaRegCircleUser,
+        },
+        {
+            label: "Dashboard",
+            path: "/Kambaz/Dashboard",
+            match: (p: string) => p.includes("/Dashboard"),
+            icon: AiOutlineDashboard,
+        },
+        {
+            label: "Courses",
+            // Navigate to first course home by default
+            path: "/Kambaz/Courses/5400/Home",
+            match: (p: string) => p.includes("/Courses/"),
+            icon: LiaBookSolid,
+        },
+        {
+            label: "Calendar",
+            path: "/Kambaz/Calendar",
+            match: (p: string) => p.includes("/Calendar"),
+            icon: IoCalendarOutline,
+        },
+        {
+            label: "Inbox",
+            path: "/Kambaz/Inbox",
+            match: (p: string) => p.includes("/Inbox"),
+            icon: FaInbox,
+        },
+        {
+            label: "Labs",
+            path: "/Labs",
+            match: (p: string) => p.startsWith("/Labs"),
+            icon: LiaCogSolid,
+        },
+    ];
+
     return (
         <ListGroup
             id="wd-kambaz-navigation"
+            className="rounded-0 position-fixed top-0 bottom-0 d-none d-md-block bg-black z-2"
             style={{ width: 120 }}
-            className="rounded-0 position-fixed bottom-0 top-0 d-none d-md-block bg-black z-2"
         >
             {/* Northeastern logo */}
             <ListGroup.Item
@@ -19,113 +60,36 @@ export default function KambazNavigation() {
                 action
                 href="https://www.northeastern.edu/"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="bg-black border-0 text-center"
             >
-                <img src="/images/NEU.png" width={75} alt="NEU" />
+                <img src="/images/NEU.png" width={75} alt="NEU Logo" />
             </ListGroup.Item>
-            <br />
 
-            {/* 以下几项用 NavLink + children fn 来拿 isActive */}
-            <NavLink to="/Kambaz/Account">
-                {({ isActive }: { isActive: boolean }) => (
+            {/* Dynamic navigation items */}
+            {links.map(({ label, path, match, icon: Icon }) => {
+                const isActive = match(pathname);
+                return (
                     <ListGroup.Item
-                        id="wd-account-link"
+                        key={label}
                         action
-                        className={`${base} ${
-                            isActive ? "bg-white" : "bg-black"
-                        }`}
+                        as={Link}
+                        to={path}
+                        className={
+                            `text-center border-0 ${
+                                isActive ? "bg-white text-danger" : "bg-black text-white"
+                            }`
+                        }
                     >
-                        <FaRegCircleUser className="fs-1 mb-1" />
+                        {/* Icon remains red always */}
+                        <Icon className="fs-1 mb-1 text-danger" />
                         <br />
-                        Account
+                        <span className={isActive ? "text-danger" : "text-danger"}>
+              {label}
+            </span>
                     </ListGroup.Item>
-                )}
-            </NavLink>
-            <br />
-
-            <NavLink to="/Kambaz/Dashboard">
-                {({ isActive }: { isActive: boolean }) => (
-                    <ListGroup.Item
-                        id="wd-dashboard-link"
-                        action
-                        className={`${base} ${
-                            isActive ? "bg-white" : "bg-black"
-                        }`}
-                    >
-                        <AiOutlineDashboard className="fs-1 mb-1" />
-                        <br />
-                        Dashboard
-                    </ListGroup.Item>
-                )}
-            </NavLink>
-            <br />
-
-            <NavLink to="/Kambaz/Courses/1234">
-                {({ isActive }: { isActive: boolean }) => (
-                    <ListGroup.Item
-                        id="wd-course-link"
-                        action
-                        className={`${base} ${
-                            isActive ? "bg-white" : "bg-black"
-                        }`}
-                    >
-                        <LiaBookSolid className="fs-1 mb-1" />
-                        <br />
-                        Courses
-                    </ListGroup.Item>
-                )}
-            </NavLink>
-            <br />
-
-            <NavLink to="/Kambaz/Calendar">
-                {({ isActive }: { isActive: boolean }) => (
-                    <ListGroup.Item
-                        id="wd-calendar-link"
-                        action
-                        className={`${base} ${
-                            isActive ? "bg-white" : "bg-black"
-                        }`}
-                    >
-                        <IoCalendarOutline className="fs-1 mb-1" />
-                        <br />
-                        Calendar
-                    </ListGroup.Item>
-                )}
-            </NavLink>
-            <br />
-
-            <NavLink to="/Kambaz/Inbox">
-                {({ isActive }: { isActive: boolean }) => (
-                    <ListGroup.Item
-                        id="wd-inbox-link"
-                        action
-                        className={`${base} ${
-                            isActive ? "bg-white" : "bg-black"
-                        }`}
-                    >
-                        <FaInbox className="fs-1 mb-1" />
-                        <br />
-                        Inbox
-                    </ListGroup.Item>
-                )}
-            </NavLink>
-            <br />
-
-            <NavLink to="/Labs">
-                {({ isActive }: { isActive: boolean }) => (
-                    <ListGroup.Item
-                        id="wd-labs-link"
-                        action
-                        className={`${base} ${
-                            isActive ? "bg-white" : "bg-black"
-                        }`}
-                    >
-                        <LiaCogSolid className="fs-1 mb-1" />
-                        <br />
-                        Labs
-                    </ListGroup.Item>
-                )}
-            </NavLink>
+                );
+            })}
         </ListGroup>
     );
 }

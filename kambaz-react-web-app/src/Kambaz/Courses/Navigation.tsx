@@ -1,63 +1,36 @@
-import { NavLink } from 'react-router-dom';
-import { ListGroup } from 'react-bootstrap';
+import { ListGroup } from "react-bootstrap";
+import { NavLink, useParams } from "react-router-dom";
 
 export default function CourseNavigation() {
-    const base = '/Kambaz/Courses/1234';
+    const { cid } = useParams();
+    const base = `/Kambaz/Courses/${cid}`;
+    const links = [
+        "Home",
+        "Modules",
+        "Piazza",
+        "Zoom",
+        "Assignments",
+        "Quizzes",
+        "Grades",
+        "People",
+    ];
+
     return (
         <ListGroup
             id="wd-courses-navigation"
             className="fs-5 wd list-group rounded-0"
         >
-            <ListGroup.Item
-                as={NavLink}
-                to={`${base}/Home`}
-                end
-                className="border-0"
-            >
-                Home
-            </ListGroup.Item>
-            <ListGroup.Item
-                as={NavLink}
-                to={`${base}/Modules`}
-                className="border-0"
-            >
-                Modules
-            </ListGroup.Item>
-            <ListGroup.Item
-                as={NavLink}
-                to={`${base}/Piazza`}
-                className="border-0"
-            >
-                Piazza
-            </ListGroup.Item>
-            <ListGroup.Item
-                as={NavLink}
-                to={`${base}/Zoom`}
-                className="border-0"
-            >
-                Zoom
-            </ListGroup.Item>
-            <ListGroup.Item
-                as={NavLink}
-                to={`${base}/Assignments`}
-                className="border-0"
-            >
-                Assignments
-            </ListGroup.Item>
-            <ListGroup.Item
-                as={NavLink}
-                to={`${base}/Quizzes`}
-                className="border-0"
-            >
-                Quizzes
-            </ListGroup.Item>
-            <ListGroup.Item
-                as={NavLink}
-                to={`${base}/People`}
-                className="border-0"
-            >
-                People
-            </ListGroup.Item>
+            {links.map((label) => (
+                <ListGroup.Item
+                    key={label}
+                    as={NavLink}
+                    to={`${base}/${label}`}
+                    end={label === "Home"}
+                    className="border-0"
+                >
+                    {label}
+                </ListGroup.Item>
+            ))}
         </ListGroup>
     );
 }

@@ -6,14 +6,33 @@ import {
     Form,
     Button,
 } from "react-bootstrap";
+import * as db from "../../Database";
+
+interface Assignment {
+    _id: string;
+    courseId: string;
+    title: string;
+    module: string;
+    notAvailable: string;
+    due: string;
+    pts: number;
+    // add any other fields you need, e.g. description
+    description?: string;
+}
 
 export default function AssignmentEditor() {
-    const { aid } = useParams<{ aid: string }>();
+    const { cid, aid } = useParams<{ cid: string; aid: string }>();
+
+    // find this assignment in the data
+    const assignment = (db.assignments as Assignment[]).find(
+        (a) => a._id === aid && a.courseId === cid
+    );
 
     return (
         <div id="wd-assignments-editor" className="p-4">
             <h4 className="text-danger mb-3">
-                CS5610 SU1 24 MON/FRI &gt; Assignments &gt; {aid}
+                {/* breadcrumb: course name > Assignments > assignment title */}
+                {cid} &gt; Assignments &gt; {assignment?.title || aid}
             </h4>
             <hr />
 
@@ -24,8 +43,8 @@ export default function AssignmentEditor() {
                             <Form.Label>Assignment Name</Form.Label>
                             <Form.Control
                                 type="text"
-                                defaultValue={aid}
-                                placeholder={`A${aid}`}
+                                defaultValue={assignment?.title || ""}
+                                placeholder={assignment?.title || ""}
                             />
                         </Form.Group>
 
@@ -34,7 +53,10 @@ export default function AssignmentEditor() {
                             <Form.Control
                                 as="textarea"
                                 rows={8}
-                                defaultValue={`The assignment is available online.\nSubmit a link to the landing page of your Web application running on Netlify.`}
+                                defaultValue={
+                                    assignment?.description ||
+                                    "The assignment is available online.\nSubmit your link here."
+                                }
                             />
                         </Form.Group>
                     </Form>
@@ -46,7 +68,10 @@ export default function AssignmentEditor() {
                             {/* Points */}
                             <Form.Group controlId="wd-points" className="mb-3">
                                 <Form.Label>Points</Form.Label>
-                                <Form.Control type="number" defaultValue={100} />
+                                <Form.Control
+                                    type="number"
+                                    defaultValue={assignment?.pts ?? 100}
+                                />
                             </Form.Group>
 
                             {/* Assignment Group */}
@@ -125,7 +150,11 @@ export default function AssignmentEditor() {
                             {/* Due Date */}
                             <Form.Group controlId="wd-due-date" className="mb-3">
                                 <Form.Label>Due</Form.Label>
-                                <Form.Control type="date" defaultValue="2024-05-13" />
+                                <Form.Control
+                                    type="date"
+                                    defaultValue={assignment?.due
+                                        .split(" at")[0] /* e.g. "2023-05-13" */}
+                                />
                             </Form.Group>
 
                             <Row>
@@ -133,7 +162,11 @@ export default function AssignmentEditor() {
                                     {/* Available From */}
                                     <Form.Group controlId="wd-available-from" className="mb-3">
                                         <Form.Label>Available from</Form.Label>
-                                        <Form.Control type="date" defaultValue="2024-05-06" />
+                                        <Form.Control
+                                            type="date"
+                                            defaultValue={assignment?.notAvailable
+                                                .split(" at")[0]}
+                                        />
                                     </Form.Group>
                                 </Col>
                                 <Col>

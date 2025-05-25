@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import {
     Row,
     Col,
@@ -17,34 +17,25 @@ import {
 } from "react-icons/fa";
 import { MdKeyboardArrowDown } from "react-icons/md";
 
-const data = [
-    {
-        id: "123",
-        title: "A1 – ENV + HTML",
-        module: "Multiple Modules",
-        notAvailable: "May 6 at 12:00 am",
-        due: "May 13 at 11:59 pm",
-        pts: 100,
-    },
-    {
-        id: "124",
-        title: "A2 – CSS Layout",
-        module: "Multiple Modules",
-        notAvailable: "May 13 at 12:00 am",
-        due: "May 20 at 11:59 pm",
-        pts: 100,
-    },
-    {
-        id: "125",
-        title: "A3 – JavaScript Basics",
-        module: "Multiple Modules",
-        notAvailable: "May 20 at 12:00 am",
-        due: "May 27 at 11:59 pm",
-        pts: 100,
-    },
-];
+import * as db from "../../Database";
+
+interface Assignment {
+    _id: string;
+    courseId: string;
+    title: string;
+    module: string;
+    notAvailable: string;
+    due: string;
+    pts: number;
+}
 
 export default function Assignments() {
+    const { cid } = useParams<{ cid: string }>();
+    // pick up only the assignments whose courseId matches the URL param
+    const assignments = (db.assignments as Assignment[]).filter(
+        (a) => a.courseId === cid
+    );
+
     return (
         <div id="wd-assignments-screen" className="p-3">
             <Row className="align-items-center mb-3">
@@ -91,29 +82,26 @@ export default function Assignments() {
             </div>
 
             <ListGroup>
-                {data.map((a) => (
+                {assignments.map((a) => (
                     <ListGroup.Item
-                        key={a.id}
+                        key={a._id}
                         className="d-flex align-items-center border-start border-success py-3"
                     >
                         <FaGripVertical className="me-3 text-muted" />
                         <i className="bi bi-file-earmark-text me-2 text-success" />
                         <Link
-                            to={a.id}
+                            to={`${a._id}`}
                             className="fw-bold me-3 text-decoration-none text-dark"
                         >
                             {a.title}
                         </Link>
                         <small className="text-muted me-3">
-                            <Link
-                                to="/"
-                                className="text-decoration-none"
-                            >
+                            <Link to={`${a._id}`} className="text-decoration-none">
                                 {a.module}
                             </Link>{" "}
                             | Not available until {a.notAvailable} |
                         </small>
-                        <small className="text-muted me-3">Due {a.due} | </small>
+                        <small className="text-muted me-3">Due {a.due} |</small>
                         <small className="text-muted me-3">{a.pts} pts</small>
                         <FaCheckCircle className="text-success me-3" />
                         <Dropdown align="end">
