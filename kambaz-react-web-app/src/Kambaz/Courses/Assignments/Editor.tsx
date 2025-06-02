@@ -1,167 +1,211 @@
-import { Link, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+    Row,
+    Col,
+    Card,
+    FormControl,
+    Button,
+    Form,
+} from "react-bootstrap";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "../../store";
+import {
+    type Assignment,
+    addAssignment,
+    updateAssignment,
+} from "./assignmentsReducer";
 
 export default function AssignmentEditor() {
-    const { aid } = useParams();
+    const { cid, aid } = useParams<{ cid: string; aid: string }>();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    // 1. Grab the assignments array from Redux
+    const allAssignments: Assignment[] = useSelector(
+        (state: RootState) => state.assignmentsReducer.assignments
+    );
+
+    // 2. If this is “edit” mode (aid !== "new"), attempts to find that assignment:
+    const existing = allAssignments.find((a) => a._id === aid);
+
+    // 3. Local form state that will hold all assignment fields:
+    const [formState, setFormState] = useState<Partial<Assignment>>({
+        // default for “new” mode:
+        _id: "new",         // sentinel to indicate “create new”
+        courseId: cid || "",
+        title: "",
+        module: "",
+        notAvailable: "",
+        due: "",
+        pts: 100,
+        description: "",
+    });
+
+    // 4. On mount, if `aid !== "new"` and we found an existing assignment, load it into formState.
+    useEffect(() => {
+        if (aid && aid !== "new") {
+            if (!existing) {
+                // If no assignment with that ID was found, just redirect back to the list:
+                navigate(`/Kambaz/Courses/${cid}/Assignments`, { replace: true });
+            } else {
+                // Copy the big assignment object into formState
+                setFormState({ ...existing });
+            }
+        }
+        // If aid === "new", we keep our default formState for a brand‐new record.
+    }, [aid, existing, navigate, cid]);
+
+    // 5. If for some reason the formState is still missing, we can fallback to an empty screen:
+    if (!formState) {
+        return null;
+    }
+
+    // 6. Handler for “Save”
+    const onSave = () => {
+        // Gather a full Assignment object. Since formState might be Partial<Assignment>,
+        // we “type‐cast” it to Assignment (we know all fields are present).
+        const assignmentToSave = formState as Assignment;
+
+        if (aid === "new") {
+            // CREATE NEW
+            dispatch(addAssignment(assignmentToSave));
+        } else {
+            // UPDATE EXISTING
+            dispatch(updateAssignment(assignmentToSave));
+        }
+
+        // Then navigate back to the assignments list:
+        navigate(`/Kambaz/Courses/${cid}/Assignments`);
+    };
+
+    // 7. Handler for “Cancel” just navigates back without touching Redux
+    const onCancel = () => {
+        navigate(`/Kambaz/Courses/${cid}/Assignments`);
+    };
 
     return (
-        <div id="wd-assignments-editor">
-            {/* Header */}
-            <h2>Edit Assignment</h2>
+        <div id="wd-assignments-editor" className="p-4">
+            <h4 className="text-danger mb-3">
+                {cid} &gt; Assignments &gt;{" "}
+                {aid === "new" ? "New Assignment" : formState.title}
+            </h4>
+            <hr />
 
-            {/* Assignment Name */}
-            <label htmlFor="wd-name">Assignment Name</label>
-            <input
-                id="wd-name"
-                type="text"
-                defaultValue={`A${aid} – Example Title`}
-            />
-            <br />
-            <br />
+            <Row>
+                <Col xl={8}>
+                    {/* NAME + DESCRIPTION */}
+                    <Form>
+                        <Form.Group controlId="wd-name" className="mb-4">
+                            <Form.Label>Assignment Name</Form.Label>
+                            <FormControl
+                                type="text"
+                                value={formState.title || ""}
+                                placeholder="New Assignment"
+                                onChange={(e) =>
+                                    setFormState({ ...formState, title: e.target.value })
+                                }
+                            />
+                        </Form.Group>
 
-            {/* Description */}
-            <label htmlFor="wd-description">Description</label>
-            <textarea
-                id="wd-description"
-                rows={4}
-                defaultValue="The assignment is available online. Submit a link to your repo."
-            />
-            <br />
-            <br />
+                        <Form.Group controlId="wd-description" className="mb-4">
+                            <Form.Label>Description</Form.Label>
+                            <FormControl
+                                as="textarea"
+                                rows={6}
+                                value={formState.description || ""}
+                                placeholder="New Assignment Description"
+                                onChange={(e) =>
+                                    setFormState({ ...formState, description: e.target.value })
+                                }
+                            />
+                        </Form.Group>
+                    </Form>
+                </Col>
 
-            <table>
-                {/* Points */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-points">Points</label>
-                    </td>
-                    <td>
-                        <input id="wd-points" type="number" defaultValue={100} />
-                    </td>
-                </tr>
-                {/* Group */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-group">Assignment Group</label>
-                    </td>
-                    <td>
-                        <select id="wd-group" defaultValue="assignments">
-                            <option value="assignments">Assignments</option>
-                            <option value="quizzes">Quizzes</option>
-                            <option value="exams">Exams</option>
-                            <option value="projects">Project</option>
-                        </select>
-                    </td>
-                </tr>
-                {/* Display Grade As */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-display-grade-as">Display Grade As</label>
-                    </td>
-                    <td>
-                        <select id="wd-display-grade-as" defaultValue="percentage">
-                            <option value="percentage">Percentage</option>
-                            <option value="points">Points</option>
-                            <option value="letter">Letter Grade</option>
-                        </select>
-                    </td>
-                </tr>
-                {/* Submission Type */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-submission-type">Submission Type</label>
-                    </td>
-                    <td>
-                        <select id="wd-submission-type" defaultValue="online">
-                            <option value="online">Online</option>
-                            <option value="onpaper">On Paper</option>
-                        </select>
-                    </td>
-                </tr>
-                {/* Online Entry Options */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label>Online Entry Options</label>
-                    </td>
-                    <td>
-                        <input type="checkbox" id="wd-text-entry" defaultChecked />{" "}
-                        <label htmlFor="wd-text-entry">Text Entry</label>
-                        <br />
-                        <input type="checkbox" id="wd-website-url" />{" "}
-                        <label htmlFor="wd-website-url">Website URL</label>
-                        <br />
-                        <input type="checkbox" id="wd-media-recordings" />{" "}
-                        <label htmlFor="wd-media-recordings">Media Recordings</label>
-                        <br />
-                        <input type="checkbox" id="wd-student-annotation" />{" "}
-                        <label htmlFor="wd-student-annotation">Student Annotation</label>
-                        <br />
-                        <input type="checkbox" id="wd-file-upload" />{" "}
-                        <label htmlFor="wd-file-upload">File Upload</label>
-                    </td>
-                </tr>
-                {/* Assign To */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-assign-to">Assign To</label>
-                    </td>
-                    <td>
-                        <input
-                            id="wd-assign-to"
-                            type="text"
-                            defaultValue="Everyone"
-                        />
-                    </td>
-                </tr>
-                {/* Due Date */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-due-date">Due Date</label>
-                    </td>
-                    <td>
-                        <input
-                            id="wd-due-date"
-                            type="date"
-                            defaultValue="2025-05-15"
-                        />
-                    </td>
-                </tr>
-                {/* Available From */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-available-from">Available From</label>
-                    </td>
-                    <td>
-                        <input
-                            id="wd-available-from"
-                            type="date"
-                            defaultValue="2025-05-01"
-                        />
-                    </td>
-                </tr>
-                {/* Available Until */}
-                <tr>
-                    <td align="right" valign="top">
-                        <label htmlFor="wd-available-until">Available Until</label>
-                    </td>
-                    <td>
-                        <input
-                            id="wd-available-until"
-                            type="date"
-                            defaultValue="2025-05-30"
-                        />
-                    </td>
-                </tr>
-            </table>
+                <Col xl={4}>
+                    <Card className="mb-4">
+                        <Card.Body>
+                            {/* POINTS */}
+                            <Form.Group controlId="wd-points" className="mb-3">
+                                <Form.Label>Points</Form.Label>
+                                <FormControl
+                                    type="number"
+                                    value={formState.pts !== undefined ? formState.pts : 100}
+                                    onChange={(e) =>
+                                        setFormState({
+                                            ...formState,
+                                            pts: parseInt(e.target.value, 10) || 0,
+                                        })
+                                    }
+                                />
+                            </Form.Group>
 
-            <br />
+                            {/* MODULE (for simplicity, free‐text) */}
+                            <Form.Group controlId="wd-module" className="mb-3">
+                                <Form.Label>Module</Form.Label>
+                                <FormControl
+                                    type="text"
+                                    value={formState.module || ""}
+                                    placeholder="e.g. Week 1: Basics"
+                                    onChange={(e) =>
+                                        setFormState({ ...formState, module: e.target.value })
+                                    }
+                                />
+                            </Form.Group>
 
-            {/* Save and Cancel Buttons */}
-            <Link to="../" id="wd-save-assignment">
-                <button>Save</button>
-            </Link>{" "}
-            <Link to="../" id="wd-cancel-assignment">
-                <button>Cancel</button>
-            </Link>
+                            {/* DUE DATE */}
+                            <Form.Group controlId="wd-due-date" className="mb-3">
+                                <Form.Label>Due</Form.Label>
+                                <FormControl
+                                    type="date"
+                                    value={(formState.due || "").split(" at")[0]}
+                                    onChange={(e) =>
+                                        setFormState({
+                                            ...formState,
+                                            // We convert the date to e.g. "YYYY-MM-DD at 11:59pm"
+                                            due: e.target.value + " at 11:59pm",
+                                        })
+                                    }
+                                />
+                            </Form.Group>
+
+                            {/* NOT AVAILABLE UNTIL */}
+                            <Form.Group controlId="wd-not-available" className="mb-3">
+                                <Form.Label>Not available until</Form.Label>
+                                <FormControl
+                                    type="date"
+                                    value={(formState.notAvailable || "").split(" at")[0]}
+                                    onChange={(e) =>
+                                        setFormState({
+                                            ...formState,
+                                            notAvailable: e.target.value + " at 12:00am",
+                                        })
+                                    }
+                                />
+                            </Form.Group>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+
+            <div className="d-flex justify-content-end mt-4">
+                <Button
+                    variant="light"
+                    className="me-2"
+                    onClick={onCancel}
+                    id="wd-cancel-assignment-btn"
+                >
+                    Cancel
+                </Button>
+                <Button
+                    variant="danger"
+                    onClick={onSave}
+                    id="wd-save-assignment-btn"
+                >
+                    Save
+                </Button>
+            </div>
         </div>
     );
 }
