@@ -1,61 +1,122 @@
-import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
     Row,
     Col,
     Card,
-    Form,
+    FormControl,
     Button,
+    Form,
 } from "react-bootstrap";
-import * as db from "../../Database";
-
-interface Assignment {
-    _id: string;
-    courseId: string;
-    title: string;
-    module: string;
-    notAvailable: string;
-    due: string;
-    pts: number;
-    // add any other fields you need, e.g. description
-    description?: string;
-}
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "../../store";
+import {
+    type Assignment,
+    addAssignment,
+    updateAssignment,
+} from "./assignmentsReducer";
 
 export default function AssignmentEditor() {
     const { cid, aid } = useParams<{ cid: string; aid: string }>();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-    // find this assignment in the data
-    const assignment = (db.assignments as Assignment[]).find(
-        (a) => a._id === aid && a.courseId === cid
+    // 1. Grab the assignments array from Redux
+    const allAssignments: Assignment[] = useSelector(
+        (state: RootState) => state.assignmentsReducer.assignments
     );
+
+    // 2. If this is “edit” mode (aid !== "new"), attempts to find that assignment:
+    const existing = allAssignments.find((a) => a._id === aid);
+
+    // 3. Local form state that will hold all assignment fields:
+    const [formState, setFormState] = useState<Partial<Assignment>>({
+        // default for “new” mode:
+        _id: "new",         // sentinel to indicate “create new”
+        courseId: cid || "",
+        title: "",
+        module: "",
+        notAvailable: "",
+        due: "",
+        pts: 100,
+        description: "",
+    });
+
+    // 4. On mount, if `aid !== "new"` and we found an existing assignment, load it into formState.
+    useEffect(() => {
+        if (aid && aid !== "new") {
+            if (!existing) {
+                // If no assignment with that ID was found, just redirect back to the list:
+                navigate(`/Kambaz/Courses/${cid}/Assignments`, { replace: true });
+            } else {
+                // Copy the big assignment object into formState
+                setFormState({ ...existing });
+            }
+        }
+        // If aid === "new", we keep our default formState for a brand‐new record.
+    }, [aid, existing, navigate, cid]);
+
+    // 5. If for some reason the formState is still missing, we can fallback to an empty screen:
+    if (!formState) {
+        return null;
+    }
+
+    // 6. Handler for “Save”
+    const onSave = () => {
+        // Gather a full Assignment object. Since formState might be Partial<Assignment>,
+        // we “type‐cast” it to Assignment (we know all fields are present).
+        const assignmentToSave = formState as Assignment;
+
+        if (aid === "new") {
+            // CREATE NEW
+            dispatch(addAssignment(assignmentToSave));
+        } else {
+            // UPDATE EXISTING
+            dispatch(updateAssignment(assignmentToSave));
+        }
+
+        // Then navigate back to the assignments list:
+        navigate(`/Kambaz/Courses/${cid}/Assignments`);
+    };
+
+    // 7. Handler for “Cancel” just navigates back without touching Redux
+    const onCancel = () => {
+        navigate(`/Kambaz/Courses/${cid}/Assignments`);
+    };
 
     return (
         <div id="wd-assignments-editor" className="p-4">
             <h4 className="text-danger mb-3">
-                {/* breadcrumb: course name > Assignments > assignment title */}
-                {cid} &gt; Assignments &gt; {assignment?.title || aid}
+                {cid} &gt; Assignments &gt;{" "}
+                {aid === "new" ? "New Assignment" : formState.title}
             </h4>
             <hr />
 
             <Row>
                 <Col xl={8}>
+                    {/* NAME + DESCRIPTION */}
                     <Form>
                         <Form.Group controlId="wd-name" className="mb-4">
                             <Form.Label>Assignment Name</Form.Label>
-                            <Form.Control
+                            <FormControl
                                 type="text"
-                                defaultValue={assignment?.title || ""}
-                                placeholder={assignment?.title || ""}
+                                value={formState.title || ""}
+                                placeholder="New Assignment"
+                                onChange={(e) =>
+                                    setFormState({ ...formState, title: e.target.value })
+                                }
                             />
                         </Form.Group>
 
                         <Form.Group controlId="wd-description" className="mb-4">
                             <Form.Label>Description</Form.Label>
-                            <Form.Control
+                            <FormControl
                                 as="textarea"
-                                rows={8}
-                                defaultValue={
-                                    assignment?.description ||
-                                    "The assignment is available online.\nSubmit your link here."
+                                rows={6}
+                                value={formState.description || ""}
+                                placeholder="New Assignment Description"
+                                onChange={(e) =>
+                                    setFormState({ ...formState, description: e.target.value })
                                 }
                             />
                         </Form.Group>
@@ -65,132 +126,85 @@ export default function AssignmentEditor() {
                 <Col xl={4}>
                     <Card className="mb-4">
                         <Card.Body>
-                            {/* Points */}
+                            {/* POINTS */}
                             <Form.Group controlId="wd-points" className="mb-3">
                                 <Form.Label>Points</Form.Label>
-                                <Form.Control
+                                <FormControl
                                     type="number"
-                                    defaultValue={assignment?.pts ?? 100}
+                                    value={formState.pts !== undefined ? formState.pts : 100}
+                                    onChange={(e) =>
+                                        setFormState({
+                                            ...formState,
+                                            pts: parseInt(e.target.value, 10) || 0,
+                                        })
+                                    }
                                 />
                             </Form.Group>
 
-                            {/* Assignment Group */}
-                            <Form.Group controlId="wd-group" className="mb-3">
-                                <Form.Label>Assignment Group</Form.Label>
-                                <Form.Select defaultValue="ASSIGNMENTS">
-                                    <option value="ASSIGNMENTS">ASSIGNMENTS</option>
-                                    <option value="QUIZZES">QUIZZES</option>
-                                    <option value="EXAMS">EXAMS</option>
-                                    <option value="PROJECT">PROJECT</option>
-                                </Form.Select>
+                            {/* MODULE (for simplicity, free‐text) */}
+                            <Form.Group controlId="wd-module" className="mb-3">
+                                <Form.Label>Module</Form.Label>
+                                <FormControl
+                                    type="text"
+                                    value={formState.module || ""}
+                                    placeholder="e.g. Week 1: Basics"
+                                    onChange={(e) =>
+                                        setFormState({ ...formState, module: e.target.value })
+                                    }
+                                />
                             </Form.Group>
 
-                            {/* Display Grade As */}
-                            <Form.Group controlId="wd-display-grade-as" className="mb-3">
-                                <Form.Label>Display Grade as</Form.Label>
-                                <Form.Select defaultValue="Percentage">
-                                    <option>Percentage</option>
-                                    <option>Points</option>
-                                    <option>Letter Grade</option>
-                                </Form.Select>
-                            </Form.Group>
-
-                            {/* Submission Type */}
-                            <Form.Group controlId="wd-submission-type" className="mb-3">
-                                <Form.Label>Submission Type</Form.Label>
-                                <Form.Select defaultValue="Online">
-                                    <option>Online</option>
-                                    <option>On Paper</option>
-                                </Form.Select>
-                            </Form.Group>
-
-                            {/* Online Entry Options */}
-                            <Form.Group className="mb-3">
-                                <Form.Label>Online Entry Options</Form.Label>
-                                <div>
-                                    <Form.Check
-                                        type="checkbox"
-                                        id="wd-text-entry"
-                                        label="Text Entry"
-                                        defaultChecked
-                                    />
-                                    <Form.Check
-                                        type="checkbox"
-                                        id="wd-website-url"
-                                        label="Website URL"
-                                    />
-                                    <Form.Check
-                                        type="checkbox"
-                                        id="wd-media-recordings"
-                                        label="Media Recordings"
-                                    />
-                                    <Form.Check
-                                        type="checkbox"
-                                        id="wd-student-annotation"
-                                        label="Student Annotation"
-                                    />
-                                    <Form.Check
-                                        type="checkbox"
-                                        id="wd-file-upload"
-                                        label="File Uploads"
-                                    />
-                                </div>
-                            </Form.Group>
-                        </Card.Body>
-                    </Card>
-
-                    <Card className="mb-4">
-                        <Card.Body>
-                            {/* Assign To */}
-                            <Form.Group controlId="wd-assign-to" className="mb-3">
-                                <Form.Label>Assign To</Form.Label>
-                                <Form.Control type="text" defaultValue="Everyone" />
-                            </Form.Group>
-
-                            {/* Due Date */}
+                            {/* DUE DATE */}
                             <Form.Group controlId="wd-due-date" className="mb-3">
                                 <Form.Label>Due</Form.Label>
-                                <Form.Control
+                                <FormControl
                                     type="date"
-                                    defaultValue={assignment?.due
-                                        .split(" at")[0] /* e.g. "2023-05-13" */}
+                                    value={(formState.due || "").split(" at")[0]}
+                                    onChange={(e) =>
+                                        setFormState({
+                                            ...formState,
+                                            // We convert the date to e.g. "YYYY-MM-DD at 11:59pm"
+                                            due: e.target.value + " at 11:59pm",
+                                        })
+                                    }
                                 />
                             </Form.Group>
 
-                            <Row>
-                                <Col>
-                                    {/* Available From */}
-                                    <Form.Group controlId="wd-available-from" className="mb-3">
-                                        <Form.Label>Available from</Form.Label>
-                                        <Form.Control
-                                            type="date"
-                                            defaultValue={assignment?.notAvailable
-                                                .split(" at")[0]}
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col>
-                                    {/* Available Until */}
-                                    <Form.Group controlId="wd-available-until" className="mb-3">
-                                        <Form.Label>Until</Form.Label>
-                                        <Form.Control type="date" />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
+                            {/* NOT AVAILABLE UNTIL */}
+                            <Form.Group controlId="wd-not-available" className="mb-3">
+                                <Form.Label>Not available until</Form.Label>
+                                <FormControl
+                                    type="date"
+                                    value={(formState.notAvailable || "").split(" at")[0]}
+                                    onChange={(e) =>
+                                        setFormState({
+                                            ...formState,
+                                            notAvailable: e.target.value + " at 12:00am",
+                                        })
+                                    }
+                                />
+                            </Form.Group>
                         </Card.Body>
                     </Card>
                 </Col>
             </Row>
 
             <div className="d-flex justify-content-end mt-4">
-                <Link to="../">
-                    <Button variant="light" className="me-2">
-                        Cancel
-                    </Button>
-                </Link>
-                <Link to="../">
-                    <Button variant="danger">Save</Button>
-                </Link>
+                <Button
+                    variant="light"
+                    className="me-2"
+                    onClick={onCancel}
+                    id="wd-cancel-assignment-btn"
+                >
+                    Cancel
+                </Button>
+                <Button
+                    variant="danger"
+                    onClick={onSave}
+                    id="wd-save-assignment-btn"
+                >
+                    Save
+                </Button>
             </div>
         </div>
     );

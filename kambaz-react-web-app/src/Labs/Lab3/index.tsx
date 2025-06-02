@@ -1,4 +1,7 @@
 import { Outlet } from "react-router-dom";
+import { useSelector } from "react-redux";
+
+// (Other Lab 3 imports omitted for brevity)
 import VariablesAndConstants from "./VariablesAndConstants";
 import VariableTypes from "./VariableTypes";
 import BooleanVariables from "./BooleanVariables";
@@ -20,7 +23,7 @@ import FindIndex from "./FindIndex";
 import FilterFunction from "./FilterFunction";
 import JsonStringify from "./JsonStringify";
 import House from "./House";
-import TodoList from "./todos/TodoList";
+// import TodoList from "./todos/TodoList";  // <-- Remove or rename if you still need the local version
 import Spreading from "./Spreading";
 import Destructing from "./Destructing";
 import FunctionDestructing from "./FunctionDestructing";
@@ -30,14 +33,36 @@ import Add from "./Add";
 import Square from "./Square";
 import Highlight from "./Highlight";
 import PathParameters from "./PathParameters";
+import {ListGroup} from "react-bootstrap";
 
 export default function Lab3() {
-    console.log('Hello World!');
+    // Select `todos` from the Redux store’s todosReducer slice
+    const { todos } = useSelector((state: any) => state.todosReducer);
+
+    console.log("Hello World!");
+
     return (
         <div id="wd-lab3" className="p-3">
             <h2>Lab 3</h2>
             <Outlet />
-            <VariablesAndConstants/>
+
+            {/* ---------------------------------------------------------------- */}
+            {/* DISPLAY REDUX-MANAGED TODOS AT THE TOP OF LAB 3 */}
+            {/* ---------------------------------------------------------------- */}
+            <div id="wd-lab3-todos" className="mb-4">
+                <h3>Shared Todo List (from Redux)</h3>
+                <ListGroup>
+                    {todos.map((todo: any) => (
+                        <ListGroup.Item key={todo.id}>{todo.title}</ListGroup.Item>
+                    ))}
+                </ListGroup>
+                <hr />
+            </div>
+
+            {/* ---------------------------------------------------------------- */}
+            {/* THE REST OF YOUR EXISTING LAB 3 CONTENT BELOW */}
+            {/* ---------------------------------------------------------------- */}
+            <VariablesAndConstants />
             <VariableTypes />
             <BooleanVariables />
             <IfElse />
@@ -58,23 +83,35 @@ export default function Lab3() {
             <FilterFunction />
             <JsonStringify />
             <House />
-                <TodoList />
-                <Spreading />
-                <Destructing />
-                <FunctionDestructing />
-                <DestructingImports />
-                <Classes />
-                <h4>Square of 4</h4>
-                <Square>4</Square>
-                <hr />
-                <h4>Highlighted Text</h4>
-                <Highlight>
-                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Suscipit eaque illo minus cum, saepe totam vel nihil repellat nemo explicabo excepturi consectetur.
-                </Highlight>
-                <hr />
-                <Add a={3} b={4} />
-                <hr />
-                <PathParameters />
+
+            {/* If you still want to render the old local-state TodoList, you can do so here
+          under a different name (e.g., <LocalTodoList />) after renaming its import. */}
+            {/* <h3>Local TodoList (component‐state only)</h3>
+          <LocalTodoList />  */}
+
+            <Spreading />
+            <Destructing />
+            <FunctionDestructing />
+            <DestructingImports />
+            <Classes />
+
+            <h4>Square of 4</h4>
+            <Square>4</Square>
+            <hr />
+
+            <h4>Highlighted Text</h4>
+            <Highlight>
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Suscipit eaque
+                illo minus cum, saepe totam vel nihil repellat nemo explicabo
+                excepturi consectetur.
+            </Highlight>
+            <hr />
+
+            <Add a={3} b={4} />
+            <hr />
+
+            <PathParameters />
+
             <h3>JavaScript</h3>
         </div>
     );
