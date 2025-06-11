@@ -3,7 +3,7 @@ import { FaUserCircle } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import db from "../../../Kambaz/Database/index.js";
 import type { User } from "../../Database/types.ts";
-import type {Enrollment} from "../../../../../Kambaz/Database/types.ts";
+import type {Enrollment} from "../../Database/types.ts";
 
 export default function PeopleTable() {
     const { cid } = useParams<{ cid: string }>();
