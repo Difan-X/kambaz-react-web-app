@@ -6,6 +6,7 @@ import Modules from "./Modules";
 import Assignments from "./Assignments";
 import AssignmentEditor from "./Assignments/Editor";
 import PeopleTable from "./People/Table.tsx";
+import {Users} from "../Account/Users.tsx";
 
 interface Course {
     _id: string;
@@ -25,7 +26,7 @@ export default function Courses({ courses }: CoursesProps) {
     // 1. Extract the course‐ID (cid) from the URL parameters
     const { cid } = useParams<{ cid: string }>();
 
-    // 2. Find the matching course object in the passed‐in array
+    // 2. Find the matching course object in the past‐in array
     const course = courses.find((c) => c._id === cid);
 
     // 3. Use the current pathname to determine which sub‐section is active
@@ -69,7 +70,11 @@ export default function Courses({ courses }: CoursesProps) {
                     <Route path="Modules" element={<Modules />} />
                     <Route path="Assignments" element={<Assignments />} />
                     <Route path="Assignments/:aid" element={<AssignmentEditor />} />
-                    <Route path="People" element={<PeopleTable />} />
+                    <Route path="People" element={<PeopleTable enrollments={[]} courseId={""} users={[]}
+                                                               refreshUsers={function (): void {
+                                                                   throw new Error("Function not implemented.");
+                                                               }} />} />
+                    <Route path="/Users/:uid" element={<Users />} />
                 </Routes>
             </div>
         </div>

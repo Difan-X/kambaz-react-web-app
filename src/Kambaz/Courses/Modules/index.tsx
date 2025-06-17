@@ -25,7 +25,6 @@ export default function Modules() {
     const modules = useSelector((state: RootState) => state.modulesReducer.modules as Module[]);
     const dispatch = useDispatch();
 
-    // 加载模块
     useEffect(() => {
         void (async () => {
             if (!cid) return;

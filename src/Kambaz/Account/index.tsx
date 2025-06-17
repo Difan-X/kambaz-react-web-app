@@ -1,40 +1,36 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+
 import Signin from "./Signin";
-import SignUp from "./Signup";
+import Signup from "./Signup";
 import Profile from "./Profile";
+import {Users} from "./Users";
+
 import AccountNavigation from "./Navigation";
 import type { RootState } from "../store";
+import type {JSX} from "react";
 
-export default function Account() {
-    // 1. Read currentUser from Redux
-    const { currentUser } = useSelector((state: RootState) => state.accountReducer);
-
-    // 2. Decide default target: if signed in → Profile, else → Signin
-    const defaultRoute = currentUser ? "Profile" : "Signin";
+export default function Account(): JSX.Element {
+    const { currentUser } = useSelector((s: RootState) => s.accountReducer);
+    const defaultRoute: "Profile" | "Signin" = currentUser ? "Profile" : "Signin";
 
     return (
         <div id="wd-account-screen" className="d-flex">
-            {/* Sidebar navigation */}
-            <div className="d-none d-md-block">
+            <div className="d-none d-md-block me-3">
                 <AccountNavigation />
             </div>
-
-            {/* Main content */}
             <div className="flex-fill p-3">
                 <Routes>
-                    {/* Default path for /Kambaz/Account */}
-                    <Route
-                        path="/"
-                        element={<Navigate to={defaultRoute} replace />}
-                    />
-
-                    {/* Signin and Signup always allowed */}
+                    <Route path="/" element={<Navigate to={defaultRoute} replace />} />
                     <Route path="Signin" element={<Signin />} />
-                    <Route path="Signup" element={<SignUp />} />
-
-                    {/* Profile only allowed if signed in (you can also wrap this in a ProtectedRoute if desired) */}
-                    <Route path="Profile" element={<Profile />} />
+                    <Route path="Signup" element={<Signup />} />
+                    {currentUser?.role === "ADMIN" && (
+                        <>
+                            <Route path="Profile" element={<Profile />} />
+                            <Route path="Users" element={<Users />} />
+                            <Route path="Users/:uid" element={<Users />} />
+                        </>
+                    )}
                 </Routes>
             </div>
         </div>

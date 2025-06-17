@@ -1,10 +1,20 @@
+import type {ReactNode} from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+import type { RootState } from "../store";
 
-export default function ProtectedRoute({ children }: { children: any }) {
-    const { currentUser } = useSelector((state: any) => state.accountReducer);
-    if (currentUser) {
-        return children;
-    } else {
-        return <Navigate to="/Kambaz/Account/Signin" />;
-    }}
+interface ProtectedRouteProps {
+    children: ReactNode;
+}
+
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+    const { currentUser } = useSelector((s: RootState) => s.accountReducer);
+    const location = useLocation();
+
+    if (!currentUser) {
+        // redirect to signin, preserving where they were going
+        return <Navigate to="/Kambaz/Account/Signin" state={{ from: location }} replace />;
+    }
+
+    return <>{children}</>;
+}

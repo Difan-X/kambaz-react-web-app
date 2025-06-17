@@ -1,14 +1,19 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-    Row, Col, Card, FormControl, Button, Form,
+    Row,
+    Col,
+    Card,
+    FormControl,
+    Button,
+    Form,
 } from "react-bootstrap";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../../store";
 import {
     type Assignment,
     addAssignment,
-    updateAssignment,
+    updateAssignment as updateAssignmentRedux,
 } from "./assignmentsReducer";
 import * as assignmentsClient from "./client";
 
@@ -17,12 +22,15 @@ export default function AssignmentEditor() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
+    // Redux 中已存在的作业列表
     const allAssignments: Assignment[] = useSelector(
         (state: RootState) => state.assignmentsReducer.assignments
     );
 
+    // 如果是编辑现有作业，从 Redux 里先拿
     const existing = allAssignments.find((a) => a._id === aid);
 
+    // 本地表单状态
     const [formState, setFormState] = useState<Partial<Assignment>>({
         _id: "new",
         courseId: cid || "",
@@ -34,32 +42,46 @@ export default function AssignmentEditor() {
         description: "",
     });
 
+    // 初始加载：如果 aid !== "new"，拉后端或 Redux
     useEffect(() => {
         if (aid && aid !== "new") {
             if (!existing) {
-                assignmentsClient.fetchAssignmentById(aid)
-                    .then(data => setFormState(data))
-                    .catch(() => navigate(`/Kambaz/Courses/${cid}/Assignments`, { replace: true }));
+                assignmentsClient
+                    .fetchAssignmentById(aid)
+                    .then((data) => setFormState(data))
+                    .catch(() =>
+                        navigate(`/Kambaz/Courses/${cid}/Assignments`, { replace: true })
+                    );
             } else {
-                setFormState({ ...existing });
+                setFormState(existing);
             }
         }
     }, [aid, existing, navigate, cid]);
 
     if (!formState) return null;
 
+    // 保存按钮
     const onSave = async () => {
-        let savedAssignment: Assignment;
+        let saved: Assignment;
         if (aid === "new") {
-            savedAssignment = await assignmentsClient.createAssignment(cid!, formState);
-            dispatch(addAssignment(savedAssignment));
+            // 新建
+            saved = await assignmentsClient.createAssignment(
+                cid!,
+                formState as Omit<Assignment, "_id">
+            );
+            dispatch(addAssignment(saved));
         } else {
-            savedAssignment = await assignmentsClient.updateAssignment(aid!, formState);
-            dispatch(updateAssignment(savedAssignment));
+            // 更新
+            saved = await assignmentsClient.updateAssignment(
+                aid!,
+                formState as Partial<Assignment>
+            );
+            dispatch(updateAssignmentRedux(saved));
         }
         navigate(`/Kambaz/Courses/${cid}/Assignments`);
     };
 
+    // 取消按钮
     const onCancel = () => {
         navigate(`/Kambaz/Courses/${cid}/Assignments`);
     };
@@ -106,7 +128,7 @@ export default function AssignmentEditor() {
                                 <Form.Label>Points</Form.Label>
                                 <FormControl
                                     type="number"
-                                    value={formState.pts !== undefined ? formState.pts : 100}
+                                    value={formState.pts ?? 100}
                                     onChange={(e) =>
                                         setFormState({
                                             ...formState,

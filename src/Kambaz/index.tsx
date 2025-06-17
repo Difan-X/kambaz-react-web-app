@@ -1,14 +1,27 @@
+import { useState, useEffect } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+
 import KambazNavigation from "./Navigation";
 import Dashboard from "./Dashboard";
 import Courses from "./Courses";
 import Account from "./Account";
 import ProtectedRoute from "./Account/ProtectedRoute";
 import Session from "./Account/Session";
-import { useState, useEffect } from "react";
-import * as courseClient from "./Courses/client";
+import type { RootState as AppState } from "./store";
+import type { AccountState } from "./Account/reducer";
 
-interface Course {
+import {
+    fetchAllCourses,
+    createCourse as createCourseClient,
+    updateCourse as updateCourseClient,
+    deleteCourse as deleteCourseClient,
+} from "./Courses/client";
+
+// ① 新增这一行
+import * as enrollmentsClient from "./Enrollments/client";
+
+export interface Course {
     _id: string;
     name: string;
     number: string;
@@ -19,36 +32,61 @@ interface Course {
     department?: string;
     credits?: number;
     author?: string;
+    enrolled?: boolean;
 }
 
+type RootState = AppState & {
+    accountReducer: AccountState;
+};
+
 export default function Kambaz() {
+    const currentUser = useSelector(
+        (state: RootState) => state.accountReducer.currentUser
+    );
+
     const [courses, setCourses] = useState<Course[]>([]);
-    const [course, setCourse] = useState<Course>({
+    const [courseForm, setCourseForm] = useState<Course>({
         _id: "0",
-        name: "New Course",
-        number: "New Number",
-        startDate: "2023-09-10",
-        endDate: "2023-12-15",
+        name: "",
+        number: "",
+        startDate: "",
+        endDate: "",
         image: "/images/reactjs.jpg",
-        description: "New Description",
+        description: "",
         department: "",
         credits: 3,
         author: "",
     });
+    const [enrolling, setEnrolling] = useState<boolean>(false);
+
+    // ② refreshCourses 统一读 enrollments + courses
+    const refreshCourses = async () => {
+        if (!currentUser) {
+            setCourses([]);
+            return;
+        }
+        if (enrolling) {
+            // “所有课程”：标记哪些已经 enroll
+            const all = await fetchAllCourses();
+            const mine = await enrollmentsClient.fetchEnrollments();
+            setCourses(
+                all.map((c) =>
+                    mine.some((m) => m._id === c._id) ? { ...c, enrolled: true } : c
+                )
+            );
+        } else {
+            // “我的课程”
+            const mine = await enrollmentsClient.fetchEnrollments();
+            setCourses(mine);
+        }
+    };
 
     useEffect(() => {
-        void (async () => {
-            const cs = await courseClient.fetchAllCourses();
-            setCourses(cs);
-        })();
-    }, []);
+        refreshCourses();
+    }, [currentUser, enrolling]);
 
-    const addNewCourse = async () => {
-        if (!course.name.trim()) return;
-        await courseClient.createCourse(course);
-        const cs = await courseClient.fetchAllCourses();
-        setCourses(cs);
-        setCourse({
+    const resetForm = () =>
+        setCourseForm({
             _id: "0",
             name: "",
             number: "",
@@ -60,35 +98,51 @@ export default function Kambaz() {
             credits: 3,
             author: "",
         });
+
+    const addCourse = async () => {
+        if (!courseForm.name.trim()) return;
+        try {
+            await createCourseClient(courseForm);
+            await refreshCourses();
+            resetForm();
+        } catch (e) {
+            console.error("Error creating course", e);
+        }
     };
 
-    const updateCourse = async () => {
-        if (!course._id || course._id === "0") return;
-        const updated = await courseClient.updateCourse(course);
-        setCourses(courses =>
-            courses.map(c => c._id === updated._id ? updated : c)
-        );
-        setCourse({
-            _id: "0",
-            name: "",
-            number: "",
-            startDate: "",
-            endDate: "",
-            image: "/images/reactjs.jpg",
-            description: "",
-            department: "",
-            credits: 3,
-            author: "",
-        });
+    const saveCourse = async () => {
+        if (courseForm._id === "0") return;
+        try {
+            await updateCourseClient(courseForm);
+            await refreshCourses();
+            resetForm();
+        } catch (e) {
+            console.error("Error updating course", e);
+        }
     };
 
-    const deleteCourse = async (courseId: string) => {
-        await courseClient.deleteCourse(courseId);
-        setCourses(courses => courses.filter((course) => course._id !== courseId));
+    const removeCourse = async (id: string) => {
+        try {
+            await deleteCourseClient(id);
+            await refreshCourses();
+        } catch (e) {
+            console.error("Error deleting course", e);
+        }
     };
 
     const editCourse = (c: Course) => {
-        setCourse({ ...c });
+        setCourseForm({ ...c });
+    };
+
+    // ③ 改用 enrollmentsClient.enrollCourse / .unenrollCourse
+    const updateEnrollment = async (courseId: string, enroll: boolean) => {
+        if (!currentUser) return;
+        if (enroll) {
+            await enrollmentsClient.enrollCourse(courseId);
+        } else {
+            await enrollmentsClient.unenrollCourse(courseId);
+        }
+        await refreshCourses();
     };
 
     return (
@@ -107,12 +161,15 @@ export default function Kambaz() {
                                 <ProtectedRoute>
                                     <Dashboard
                                         courses={courses}
-                                        course={course}
-                                        setCourse={setCourse}
-                                        addNewCourse={addNewCourse}
-                                        deleteCourse={deleteCourse}
-                                        updateCourse={updateCourse}
+                                        courseForm={courseForm}
+                                        setCourseForm={setCourseForm}
+                                        addCourse={addCourse}
+                                        saveCourse={saveCourse}
+                                        removeCourse={removeCourse}
                                         editCourse={editCourse}
+                                        enrolling={enrolling}
+                                        setEnrolling={setEnrolling}
+                                        updateEnrollment={updateEnrollment}  // 传给 Dashboard 使用
                                     />
                                 </ProtectedRoute>
                             }

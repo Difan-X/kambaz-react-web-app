@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from "uuid";
  * so anything we add/delete at runtime is ephemeral.
  */
 interface CoursesState {
+    currentCourseId: unknown;
     courses: Course[];
     enrollments: Enrollment[];
 }
@@ -19,6 +20,7 @@ interface CoursesState {
 const initialState: CoursesState = {
     courses: [...(db.courses as Course[])],
     enrollments: [...(db.enrollments as Enrollment[])],
+    currentCourseId: undefined
 };
 
 const coursesSlice = createSlice({

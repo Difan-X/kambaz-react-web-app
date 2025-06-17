@@ -1,48 +1,59 @@
 import { Table } from "react-bootstrap";
 import { FaUserCircle } from "react-icons/fa";
-import { useParams } from "react-router-dom";
-import db from "../../../Kambaz/Database/index.js";
-import type { User } from "../../Database/types.ts";
-import type {Enrollment} from "../../Database/types.ts";
+import { Link } from "react-router-dom";
+import PeopleDetails from "./Details";
 
-export default function PeopleTable() {
-    const { cid } = useParams<{ cid: string }>();
+export type User = {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    loginId: string;
+    section: string;
+    role: string;
+    lastActivity: string;
+    totalActivity: string;
+};
 
-    // Now this will work properly
-    const enrolled = db.users.filter((usr: User) =>
-        db.enrollments.some((en: Enrollment) =>
-            en.user === usr._id && en.course === cid
-        )
-    );
+export type Enrollment = { user: string; course: string };
 
-    const displayList: User[] = enrolled.length > 0 ? enrolled : db.users;
+type Props = {
+    users: User[];
+    enrollments: Enrollment[];   // if you're still filtering by course
+    courseId: string;
+    refreshUsers: () => void;
+};
 
+export default function PeopleTable({
+                                        users,
+                                        refreshUsers,
+                                    }: Props) {
     return (
-        <div id="wd-people-table" className="p-3 bg-white shadow-sm">
-            <Table striped>
+        <div id="wd-people-table">
+            {/* Renders Details when URL has /Users/:uid */}
+            <PeopleDetails refreshUsers={refreshUsers} />
+
+            <Table striped hover responsive>
                 <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Login ID</th>
-                    <th>Section</th>
-                    <th>Role</th>
-                    <th>Last Activity</th>
-                    <th>Total Activity</th>
+                    <th>Name</th><th>Login ID</th><th>Section</th>
+                    <th>Role</th><th>Last Activity</th><th>Total Activity</th>
                 </tr>
                 </thead>
                 <tbody>
-                {displayList.map((user: User) => (
-                    <tr key={user._id}>
-                        <td className="wd-full-name text-nowrap">
-                            <FaUserCircle className="me-2 fs-1 text-secondary" />
-                            <span className="wd-first-name">{user.firstName}</span>{" "}
-                            <span className="wd-last-name">{user.lastName}</span>
+                {users.map((u, idx) => (
+                    <tr key={u._id} className={idx % 2 === 0 ? "table-light" : ""}>
+                        <td>
+                            <Link to={`/Kambaz/Account/Users/${u._id}`} className="d-flex align-items-center text-decoration-none">
+                                <FaUserCircle className="me-2 fs-3 text-secondary" />
+                                {u.firstName} {u.lastName}
+                            </Link>
                         </td>
-                        <td className="wd-login-id">{user.loginId}</td>
-                        <td className="wd-section">{user.section}</td>
-                        <td className="wd-role">{user.role}</td>
-                        <td className="wd-last-activity">{user.lastActivity}</td>
-                        <td className="wd-total-activity">{user.totalActivity}</td>
+                        <td>{u.loginId}</td>
+                        <td>{u.section}</td>
+                        <td>{u.role}</td>
+                        <td>{u.lastActivity}</td>
+                        <td>{u.totalActivity}</td>
                     </tr>
                 ))}
                 </tbody>

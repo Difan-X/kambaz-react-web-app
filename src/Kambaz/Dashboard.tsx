@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 import { Link } from "react-router-dom";
 import {
     Container,
@@ -6,14 +6,10 @@ import {
     Col,
     Card,
     Button,
-    FormControl
+    FormControl,
 } from "react-bootstrap";
-import { useSelector, useDispatch } from "react-redux";
-import * as enrollmentsClient from "./Enrollments/client";
-import { setEnrollments } from "./Enrollments/enrollmentsReducer";
-import type { RootState } from "./store";
 
-interface Course {
+export interface Course {
     _id: string;
     name: string;
     number: string;
@@ -21,98 +17,88 @@ interface Course {
     endDate: string;
     image?: string;
     description: string;
+    /** 父组件会在 courses 里给这个字段 */
+    enrolled?: boolean;
 }
 
-interface DashboardProps {
+export interface DashboardProps {
     courses: Course[];
-    course: Course;
-    setCourse: (course: Course) => void;
-    addNewCourse: () => void;
-    deleteCourse: (courseId: string) => void;
-    updateCourse: () => void;
-    editCourse: (course: Course) => void;
+    courseForm: Course;
+    setCourseForm: Dispatch<SetStateAction<Course>>;
+    addCourse: () => Promise<void>;
+    saveCourse: () => Promise<void>;
+    removeCourse: (courseId: string) => Promise<void>;
+    editCourse: (c: Course) => void;
+    enrolling: boolean;
+    setEnrolling: Dispatch<SetStateAction<boolean>>;
+    /** 父组件传进来的 enroll/unenroll 函数 */
+    updateEnrollment: (courseId: string, enroll: boolean) => Promise<void>;
 }
 
 export default function Dashboard({
                                       courses,
-                                      course,
-                                      setCourse,
-                                      addNewCourse,
-                                      deleteCourse,
-                                      updateCourse,
+                                      courseForm,
+                                      setCourseForm,
+                                      addCourse,
+                                      saveCourse,
+                                      removeCourse,
                                       editCourse,
+                                      enrolling,
+                                      setEnrolling,
+                                      updateEnrollment,
                                   }: DashboardProps) {
-    const isEditing = course._id && course._id !== "0";
-
-    const dispatch = useDispatch();
-    const enrollments = useSelector((state: RootState) => state.enrollmentsReducer.enrollments);
-    const enrolledCourseIds = new Set(enrollments.map((e) => e.course));
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const serverEnrollments = await enrollmentsClient.fetchEnrollments();
-            dispatch(setEnrollments(serverEnrollments));
-        };
-        fetchData();
-    }, [dispatch]);
-
-    const handleEnroll = async (courseId: string) => {
-        await enrollmentsClient.enrollCourse(courseId);
-        const updated = await enrollmentsClient.fetchEnrollments();
-        dispatch(setEnrollments(updated));
-    };
-
-    const handleUnenroll = async (courseId: string) => {
-        await enrollmentsClient.unenrollCourse(courseId);
-        const updated = await enrollmentsClient.fetchEnrollments();
-        dispatch(setEnrollments(updated));
-    };
+    const isEditing = courseForm._id !== "0";
 
     return (
         <Container fluid className="p-3" id="wd-dashboard">
-            {/* ======== Header ======== */}
+            {/* Header */}
             <div className="d-flex justify-content-between align-items-center mb-2">
-                <h1 id="wd-dashboard-title" className="h4 text-danger mb-0">
-                    Dashboard
-                </h1>
-                <span id="wd-dashboard-published" className="text-muted small">
-                    Published Courses ({courses.length})
-                </span>
+                <h1 className="h4 text-danger mb-0">Dashboard</h1>
+                <span className="text-muted small">
+          Published Courses ({courses.length})
+        </span>
             </div>
             <hr />
 
-            {/* ======== ADD / EDIT FORM ======== */}
+            {/* 切换视图 */}
+            <div className="mb-3">
+                <Button
+                    size="sm"
+                    variant={enrolling ? "outline-primary" : "primary"}
+                    className="me-2"
+                    onClick={() => setEnrolling(false)}
+                >
+                    My Courses
+                </Button>
+                <Button
+                    size="sm"
+                    variant={enrolling ? "primary" : "outline-primary"}
+                    onClick={() => setEnrolling(true)}
+                >
+                    All Courses
+                </Button>
+            </div>
+
+            {/* Add/Edit */}
             <div className="mb-4">
                 <h5 className="d-flex justify-content-between align-items-center">
                     <span>{isEditing ? "Edit Course" : "New Course"}</span>
                     <div>
-                        {!isEditing && (
-                            <Button
-                                id="wd-add-new-course-click"
-                                variant="primary"
-                                size="sm"
-                                className="me-2"
-                                onClick={addNewCourse}
-                            >
+                        {!isEditing ? (
+                            <Button size="sm" variant="primary" onClick={addCourse}>
                                 Add
                             </Button>
-                        )}
-                        {isEditing && (
-                            <Button
-                                id="wd-update-course-click"
-                                variant="warning"
-                                size="sm"
-                                onClick={updateCourse}
-                            >
+                        ) : (
+                            <Button size="sm" variant="warning" onClick={saveCourse}>
                                 Update
                             </Button>
                         )}
-                        {/* Reset按钮 */}
                         <Button
-                            variant="secondary"
                             size="sm"
+                            variant="secondary"
+                            className="ms-2"
                             onClick={() =>
-                                setCourse({
+                                setCourseForm({
                                     _id: "0",
                                     name: "",
                                     number: "",
@@ -122,104 +108,81 @@ export default function Dashboard({
                                     description: "",
                                 })
                             }
-                            className="ms-2"
                         >
                             Reset
                         </Button>
                     </div>
                 </h5>
-
                 <FormControl
-                    value={course.name}
+                    value={courseForm.name}
                     placeholder="Course Name"
                     className="mb-2"
-                    onChange={(e) => setCourse({ ...course, name: e.target.value })}
+                    onChange={(e) =>
+                        setCourseForm({ ...courseForm, name: e.target.value })
+                    }
                 />
-
                 <FormControl
                     as="textarea"
                     rows={3}
-                    value={course.description}
-                    placeholder="Course Description"
-                    className="mb-2"
+                    value={courseForm.description}
+                    placeholder="Description"
                     onChange={(e) =>
-                        setCourse({ ...course, description: e.target.value })
+                        setCourseForm({ ...courseForm, description: e.target.value })
                     }
                 />
             </div>
             <hr />
 
-            {/* ======== GRID OF COURSE CARDS ======== */}
-            <Row id="wd-dashboard-courses" className="g-4 justify-content-start">
-                {courses.map((c: Course) => {
-                    const isEnrolled = enrolledCourseIds.has(c._id);
+            {/* Course Cards */}
+            <Row className="g-4">
+                {courses.map((c) => {
+                    const enrolled = Boolean(c.enrolled);
                     return (
                         <Col key={c._id} xs="auto">
                             <Card
-                                style={{ width: 300 }}
-                                className="h-100 shadow-sm position-relative d-flex flex-column"
+                                className="h-100"
+                                style={{ width: 300, position: "relative" }}
                             >
-                                <Link
-                                    to={`/Kambaz/Courses/${c._id}/Home`}
-                                    className="text-decoration-none text-body h-100 d-flex flex-column"
-                                    style={{ flex: 1 }}
-                                >
-                                    <Card.Img
-                                        variant="top"
-                                        src={c.image || "/images/reactjs.jpg"}
-                                        style={{ height: 140, objectFit: "cover" }}
-                                    />
-                                    <Card.Body className="flex-grow-1 d-flex flex-column">
-                                        <Card.Title className="fs-6 text-truncate mb-1">
-                                            {c.name}
-                                            {isEnrolled && (
-                                                <span className="ms-2 text-success" title="Enrolled">✔</span>
-                                            )}
-                                        </Card.Title>
-                                        <Card.Text
-                                            className="text-muted flex-grow-1 fs-7 text-truncate"
-                                            style={{ maxHeight: "4.5em" }}
+                                <Card.Img
+                                    src={c.image || "/images/reactjs.jpg"}
+                                    style={{ height: 140, objectFit: "cover" }}
+                                />
+                                <Card.Body className="d-flex flex-column">
+                                    <Card.Title className="flex-grow-1 text-truncate mb-1">
+                                        {c.name}
+                                        {enrolled && <span className="ms-2 text-success">✔</span>}
+                                    </Card.Title>
+                                    <Card.Text className="flex-grow-1 text-truncate">
+                                        {c.description}
+                                    </Card.Text>
+                                    <div className="d-flex gap-2 mt-2">
+                                        <Button
+                                            size="sm"
+                                            variant={enrolled ? "outline-secondary" : "success"}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                updateEnrollment(c._id, !enrolled);
+                                            }}
                                         >
-                                            {c.description}
-                                        </Card.Text>
-                                        {/* Enroll/Unenroll按钮 */}
-                                        <div>
-                                            {isEnrolled ? (
-                                                <Button
-                                                    variant="outline-success"
-                                                    size="sm"
-                                                    className="mt-auto"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleUnenroll(c._id);
-                                                    }}
-                                                >
-                                                    Unenroll
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    variant="success"
-                                                    size="sm"
-                                                    className="mt-auto"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleEnroll(c._id);
-                                                    }}
-                                                >
-                                                    Enroll
-                                                </Button>
-                                            )}
-                                        </div>
-                                        <Button variant="outline-danger" size="sm" className="mt-2">
-                                            Go
+                                            {enrolled ? "Unenroll" : "Enroll"}
                                         </Button>
-                                    </Card.Body>
-                                </Link>
-                                {/* Edit/Delete buttons */}
+                                        <Link
+                                            to={`/Kambaz/Courses/${c._id}/Home`}
+                                            className="flex-fill"
+                                        >
+                                            <Button
+                                                size="sm"
+                                                variant="outline-danger"
+                                                className="w-100"
+                                            >
+                                                Go
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </Card.Body>
                                 <Button
-                                    id="wd-edit-course-click"
-                                    variant="warning"
                                     size="sm"
+                                    variant="warning"
                                     className="position-absolute"
                                     style={{ top: 8, right: 60 }}
                                     onClick={(e) => {
@@ -230,14 +193,13 @@ export default function Dashboard({
                                     Edit
                                 </Button>
                                 <Button
-                                    id="wd-delete-course-click"
-                                    variant="danger"
                                     size="sm"
+                                    variant="danger"
                                     className="position-absolute"
                                     style={{ top: 8, right: 8 }}
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        deleteCourse(c._id);
+                                        removeCourse(c._id);
                                     }}
                                 >
                                     Delete

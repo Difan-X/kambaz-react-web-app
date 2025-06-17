@@ -14,7 +14,7 @@ export interface User {
 }
 
 // 2. The account slice state holds either a User object or null when signed out.
-interface AccountState {
+export interface AccountState {
     currentUser: User | null;
 }
 

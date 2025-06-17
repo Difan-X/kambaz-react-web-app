@@ -20,45 +20,81 @@ export interface Module {
     lessons: string[];
 }
 
-export interface NewModule {
-    name: string;
+export interface Assignment {
+    _id: string;
+    course: string;
+    title: string;
+    description?: string;
+    dueDate?: string;
 }
 
 const REMOTE_SERVER = import.meta.env.VITE_REMOTE_SERVER || "http://localhost:4000";
-const COURSES_API = `${REMOTE_SERVER}/api/courses`;
+const COURSES_API   = `${REMOTE_SERVER}/api/courses`;
+const ax = axios.create({ withCredentials: true });
 
-const axiosWithCredentials = axios.create({ withCredentials: true });
+// --- Courses API ---
 
 export const fetchAllCourses = async (): Promise<Course[]> => {
-    const { data } = await axiosWithCredentials.get<Course[]>(COURSES_API);
+    const { data } = await ax.get(COURSES_API);
     return data;
 };
 
-export const createCourse = async (course: Partial<Course>): Promise<Course> => {
-    const { data } = await axiosWithCredentials.post<Course>(COURSES_API, course);
+export const createCourse = async (course: Course): Promise<Course> => {
+    const { data } = await ax.post(COURSES_API, course);
     return data;
 };
 
-export const updateCourse = async (course: Partial<Course>): Promise<Course> => {
-    const { data } = await axiosWithCredentials.put<Course>(`${COURSES_API}/${course._id}`, course);
+export const updateCourse = async (
+    course: Course
+): Promise<{ acknowledged: boolean; modifiedCount: number }> => {
+    const { data } = await ax.put(`${COURSES_API}/${course._id}`, course);
     return data;
 };
 
 export const deleteCourse = async (id: string): Promise<void> => {
-    await axiosWithCredentials.delete(`${COURSES_API}/${id}`);
+    await ax.delete(`${COURSES_API}/${id}`);
 };
 
-// -------- Modules API --------
+// --- Modules API ---
+
+export const findModulesForCourse = async (courseId: string): Promise<Module[]> => {
+    const { data } = await ax.get(`${COURSES_API}/${courseId}/modules`);
+    return data;
+};
 
 export const createModuleForCourse = async (
     courseId: string,
-    module: NewModule
+    moduleData: { name: string; description?: string }
 ): Promise<Module> => {
-    const response = await axios.post<Module>(`${COURSES_API}/${courseId}/modules`, module);
-    return response.data;
+    const { data } = await ax.post(`${COURSES_API}/${courseId}/modules`, moduleData);
+    return data;
 };
 
-export const findModulesForCourse = async (courseId: string): Promise<Module[]> => {
-    const { data } = await axios.get<Module[]>(`${COURSES_API}/${courseId}/modules`);
+// --- Assignments API ---
+
+export const findAssignmentsForCourse = async (courseId: string): Promise<Assignment[]> => {
+    const { data } = await ax.get(`${COURSES_API}/${courseId}/assignments`);
     return data;
+};
+
+export const findAssignmentById = async (id: string): Promise<Assignment> => {
+    const { data } = await ax.get(`${COURSES_API}/assignments/${id}`);
+    return data;
+};
+
+export const createAssignmentForCourse = async (
+    courseId: string,
+    assignment: Omit<Assignment, "_id">
+): Promise<Assignment> => {
+    const { data } = await ax.post(`${COURSES_API}/${courseId}/assignments`, assignment);
+    return data;
+};
+
+export const updateAssignment = async (assignment: Assignment): Promise<Assignment> => {
+    const { data } = await ax.put(`${COURSES_API}/assignments/${assignment._id}`, assignment);
+    return data;
+};
+
+export const deleteAssignment = async (id: string): Promise<void> => {
+    await ax.delete(`${COURSES_API}/assignments/${id}`);
 };

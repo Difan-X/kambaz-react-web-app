@@ -1,43 +1,125 @@
 import axios from "axios";
 import type { User } from "./reducer";
-import type { Course } from "../Courses/client"; // 路径按实际结构调整
 
 const axiosWithCredentials = axios.create({ withCredentials: true });
 
-export const REMOTE_SERVER = import.meta.env.VITE_REMOTE_SERVER || "http://localhost:4000";
+export const REMOTE_SERVER =
+    import.meta.env.VITE_REMOTE_SERVER || "http://localhost:4000";
 export const USERS_API = `${REMOTE_SERVER}/api/users`;
 
-export const signin = async (credentials: { username: string; password: string }) => {
-    const response = await axiosWithCredentials.post(`${USERS_API}/signin`, credentials);
+/** Signin */
+export const signin = async (credentials: {
+    username: string;
+    password: string;
+}): Promise<User> => {
+    const res = await axiosWithCredentials.post(
+        `${USERS_API}/signin`,
+        credentials
+    );
+    return res.data;
+};
+
+/** Signup */
+export const signup = async (user: {
+    username: string;
+    password: string;
+}): Promise<User> => {
+    const res = await axiosWithCredentials.post(`${USERS_API}/signup`, user);
+    return res.data;
+};
+
+/** Profile */
+export const profile = async (): Promise<User> => {
+    const res = await axiosWithCredentials.post(`${USERS_API}/profile`);
+    return res.data;
+};
+
+/** Signout */
+export const signout = async (): Promise<void> => {
+    await axiosWithCredentials.post(`${USERS_API}/signout`);
+};
+
+/** Fetch all users */
+export const findAllUsers = async (): Promise<User[]> => {
+    const res = await axiosWithCredentials.get(USERS_API);
+    return res.data;
+};
+
+/** Fetch by role */
+export const findUsersByRole = async (
+    role: string
+): Promise<User[]> => {
+    const res = await axiosWithCredentials.get(
+        `${USERS_API}?role=${encodeURIComponent(role)}`
+    );
+    return res.data;
+};
+
+/** Fetch by partial name */
+export const findUsersByPartialName = async (
+    name: string
+): Promise<User[]> => {
+    const res = await axiosWithCredentials.get(
+        `${USERS_API}?name=${encodeURIComponent(name)}`
+    );
+    return res.data;
+};
+
+/** Fetch a user by ID */
+export const findUserById = async (id: string): Promise<User> => {
+    const res = await axiosWithCredentials.get(`${USERS_API}/${id}`);
+    return res.data;
+};
+
+/** Delete a user by ID */
+export const deleteUser = async (userId: string): Promise<void> => {
+    await axiosWithCredentials.delete(`${USERS_API}/${userId}`);
+};
+
+/** Update an existing user */
+export const updateUser = async (user: Partial<User>): Promise<User> => {
+    const res = await axiosWithCredentials.put(
+        `${USERS_API}/${user._id}`,
+        user
+    );
+    return res.data;
+};
+
+/** Create a new user */
+export const createUser = async (user: {
+    firstName: string;
+    lastName: `User${number}`;
+    username: `newuser${number}`;
+    password: string;
+    email: `email${number}@neu.edu`;
+    section: string;
+    role: string
+}): Promise<User> => {
+    const res = await axiosWithCredentials.post(USERS_API, user);
+    return res.data;
+};
+
+export const findCoursesForUser = async (userId: string) => {
+    const response = await axiosWithCredentials.get(`${USERS_API}/${userId}/courses`);
     return response.data;
 };
 
-export const signup = async (user: { username: string; password: string }) => {
-    const response = await axiosWithCredentials.post(`${USERS_API}/signup`, user);
-    return response.data;
+/** Enroll a user into a course by userId & courseId */
+export const enrollIntoCourse = async (
+    userId: string,
+    courseId: string
+): Promise<void> => {
+    await axiosWithCredentials.post(
+        `${USERS_API}/${userId}/courses/${courseId}`
+    );
 };
 
-export const updateUser = async (user: Partial<User>) => {
-    const response = await axiosWithCredentials.put(`${USERS_API}/${user._id}`, user);
-    return response.data as User;
-};
-
-export const profile = async () => {
-    const response = await axiosWithCredentials.post(`${USERS_API}/profile`);
-    return response.data;
-};
-
-export const signout = async () => {
-    const response = await axiosWithCredentials.post(`${USERS_API}/signout`);
-    return response.data;
-};
-
-export const findMyCourses = async (): Promise<Course[]> => {
-    const { data } = await axiosWithCredentials.get(`${USERS_API}/current/courses`);
-    return data;
-};
-
-export const createCourse = async (course: Partial<Course>): Promise<Course> => {
-    const { data } = await axiosWithCredentials.post(`${USERS_API}/current/courses`, course);
-    return data;
+/** Unenroll a user from a course */
+export const unenrollFromCourse = async (
+    userId: string,
+    courseId: string
+): Promise<void> => {
+    await axiosWithCredentials.delete(
+        `${USERS_API}/${userId}/courses/${courseId}`
+    );
 };
