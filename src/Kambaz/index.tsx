@@ -66,17 +66,17 @@ export default function Kambaz() {
             return;
         }
         if (enrolling) {
-            // “所有课程”：标记哪些已经 enroll
+            // "所有课程"：标记哪些已经 enroll
             const all = await fetchAllCourses();
-            const mine = await enrollmentsClient.fetchEnrollments();
+            const mine: Course[] = await enrollmentsClient.fetchEnrollments();
             setCourses(
                 all.map((c) =>
-                    mine.some((m) => m._id === c._id) ? { ...c, enrolled: true } : c
+                    mine.some((m: Course) => m._id === c._id) ? { ...c, enrolled: true } : c
                 )
             );
         } else {
-            // “我的课程”
-            const mine = await enrollmentsClient.fetchEnrollments();
+            // "我的课程"
+            const mine: Course[] = await enrollmentsClient.fetchEnrollments();
             setCourses(mine);
         }
     };

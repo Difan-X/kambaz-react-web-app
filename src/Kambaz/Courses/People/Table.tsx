@@ -4,15 +4,15 @@ import { Link } from "react-router-dom";
 import PeopleDetails from "./Details";
 
 export type User = {
-    _id: string;
+    _id?: string;
     firstName: string;
     lastName: string;
     email?: string;
-    loginId: string;
-    section: string;
     role: string;
-    lastActivity: string;
-    totalActivity: string;
+    loginId?: string;
+    section?: string;
+    lastActivity?: string;
+    totalActivity?: string;
 };
 
 export type Enrollment = { user: string; course: string };
