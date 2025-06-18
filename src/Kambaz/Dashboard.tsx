@@ -17,7 +17,6 @@ export interface Course {
     endDate: string;
     image?: string;
     description: string;
-    /** 父组件会在 courses 里给这个字段 */
     enrolled?: boolean;
 }
 
@@ -31,7 +30,6 @@ export interface DashboardProps {
     editCourse: (c: Course) => void;
     enrolling: boolean;
     setEnrolling: Dispatch<SetStateAction<boolean>>;
-    /** 父组件传进来的 enroll/unenroll 函数 */
     updateEnrollment: (courseId: string, enroll: boolean) => Promise<void>;
 }
 
