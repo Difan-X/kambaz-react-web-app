@@ -1,12 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { ListGroup } from "react-bootstrap";
-import { useSelector } from "react-redux";
-import type { RootState } from "../store";
+import { useAppSelector } from "../store";
 
 export default function AccountNavigation() {
-    const { currentUser } = useSelector(
-        (s: RootState) => s.accountReducer
-    );
+    const { currentUser } = useAppSelector((s) => s.account);
     const { pathname } = useLocation();
     const currentSegment = pathname.split("/").pop() || "";
 

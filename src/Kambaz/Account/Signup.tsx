@@ -4,11 +4,13 @@ import { Link, useNavigate } from "react-router-dom";
 import * as client from "./client";
 import { useDispatch } from "react-redux";
 import { setCurrentUser, type User } from "./reducer";
+import type { AxiosError } from "axios";
 
 interface Credentials {
     username: string;
     password: string;
     passwordVerify: string;
+    role: "FACULTY" | "STUDENT";
 }
 
 export default function Signup() {
@@ -16,6 +18,7 @@ export default function Signup() {
         username: "",
         password: "",
         passwordVerify: "",
+        role: "STUDENT", // 默认学生
     });
     const [error, setError] = useState<string | null>(null);
     const dispatch = useDispatch();
@@ -32,18 +35,28 @@ export default function Signup() {
             setError("Passwords do not match.");
             return;
         }
+        // 确保角色选择
+        if (!credentials.role) {
+            setError("Please select a role.");
+            return;
+        }
 
         try {
             const newUser = await client.signup({
                 username: credentials.username,
                 password: credentials.password,
+                role: credentials.role, // 传递角色
             });
 
             dispatch(setCurrentUser(newUser as User));
-
             navigate("/Kambaz/Account/Profile");
-        } catch (err: any) {
-            setError(err.response?.data?.message || "Sign up failed.");
+        } catch (err: unknown) {
+            if (err && typeof err === "object" && "isAxiosError" in err) {
+                const axiosErr = err as AxiosError<{ message?: string }>;
+                setError(axiosErr.response?.data?.message || "Sign up failed.");
+            } else {
+                setError("Sign up failed.");
+            }
         }
     };
 
@@ -93,6 +106,22 @@ export default function Signup() {
                                 setCredentials({ ...credentials, passwordVerify: e.target.value })
                             }
                         />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3" controlId="wd-signup-role">
+                        <Form.Label>Role</Form.Label>
+                        <Form.Select
+                            value={credentials.role}
+                            onChange={(e) =>
+                                setCredentials({
+                                    ...credentials,
+                                    role: e.target.value as "FACULTY" | "STUDENT",
+                                })
+                            }
+                        >
+                            <option value="STUDENT">Student</option>
+                            <option value="FACULTY">Faculty</option>
+                        </Form.Select>
                     </Form.Group>
 
                     <Button

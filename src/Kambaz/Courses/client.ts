@@ -11,6 +11,7 @@ export interface Course {
     department?: string;
     credits?: number;
     author?: string;
+    enrolled?: boolean;
 }
 
 export interface Module {
@@ -70,6 +71,26 @@ export const createModuleForCourse = async (
     return data;
 };
 
+// 根据教师查课程
+export const fetchAllCoursesByFaculty = async (facultyId: string): Promise<Course[]> => {
+    const { data } = await ax.get(`${COURSES_API}?faculty=${facultyId}`);
+    return data;
+};
+
+// 查询学生自己已选课程（通常是 enrollments 路由）
+export const fetchEnrolledCourses = async (): Promise<Course[]> => {
+    const { data } = await ax.get(`${REMOTE_SERVER}/api/enrollments`);
+    return data;
+};
+
+// 选课
+export const enrollIntoCourse = async (_userId: string, courseId: string): Promise<void> => {
+    await ax.post(`${REMOTE_SERVER}/api/enrollments/${courseId}`);
+};
+// 退课
+export const unenrollFromCourse = async (_userId: string, courseId: string): Promise<void> => {
+    await ax.delete(`${REMOTE_SERVER}/api/enrollments/${courseId}`);
+};
 // --- Assignments API ---
 
 export const findAssignmentsForCourse = async (courseId: string): Promise<Assignment[]> => {

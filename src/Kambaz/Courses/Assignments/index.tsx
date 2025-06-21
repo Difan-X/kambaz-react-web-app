@@ -4,8 +4,7 @@ import {
 } from "react-bootstrap";
 import { FaPlus, FaEllipsisV, FaCheckCircle } from "react-icons/fa";
 import { MdKeyboardArrowDown } from "react-icons/md";
-import { useSelector, useDispatch } from "react-redux";
-import type { RootState } from "../../store";
+import { useAppSelector, useAppDispatch } from "../../store";
 import { type Assignment, setAssignments, deleteAssignment } from "./assignmentsReducer";
 import * as assignmentsClient from "./client";
 import { useState, useEffect } from "react";
@@ -13,10 +12,10 @@ import { useState, useEffect } from "react";
 export default function Assignments() {
     const { cid } = useParams<{ cid: string }>();
     const navigate = useNavigate();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
-    const allAssignments: Assignment[] = useSelector(
-        (state: RootState) => state.assignmentsReducer.assignments
+    const allAssignments: Assignment[] = useAppSelector(
+        state => state.assignment.assignments
     );
     const assignments: Assignment[] = allAssignments.filter(
         (a) => a.courseId === cid

@@ -6,6 +6,7 @@ import Modules from "./Modules";
 import Assignments from "./Assignments";
 import AssignmentEditor from "./Assignments/Editor";
 import PeopleTable from "./People/Table.tsx";
+import Quizzes from './Quizzes';
 import {Users} from "../Account/Users.tsx";
 
 interface Course {
@@ -74,6 +75,8 @@ export default function Courses({ courses }: CoursesProps) {
                                                                refreshUsers={function (): void {
                                                                    throw new Error("Function not implemented.");
                                                                }} />} />
+                    {/* ← here: Quizzes */}
+                    <Route path="Quizzes/*" element={<Quizzes />} />
                     <Route path="/Users/:uid" element={<Users />} />
                 </Routes>
             </div>

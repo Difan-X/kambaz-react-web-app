@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useAppSelector, useAppDispatch } from "../store";
 import { useNavigate } from "react-router-dom";
 import { FormControl, Button, Card } from "react-bootstrap";
-import type { RootState } from "../store";
 import { setCurrentUser, type User } from "./reducer";
 import * as client from "./client";
 
 export default function Profile() {
     const [profile, setProfile] = useState<Partial<User>>({});
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const currentUser = useSelector((state: RootState) => state.accountReducer.currentUser);
+    const currentUser = useAppSelector((state) => state.account.currentUser);
 
     useEffect(() => {
         if (!currentUser) {
@@ -46,6 +45,9 @@ export default function Profile() {
     };
 
     if (!currentUser) return null;
+
+    // Check if current user is ADMIN
+    const isAdmin = currentUser.role === "ADMIN";
 
     return (
         <Card id="wd-profile-screen" className="p-4 shadow-sm">
@@ -123,24 +125,36 @@ export default function Profile() {
                             }
                         />
 
-                        {/* Role */}
-                        <FormControl
-                            as="select"
-                            value={profile.role || "STUDENT"}
-                            className="mb-2"
-                            id="wd-role"
-                            onChange={(e) =>
-                                setProfile({
-                                    ...profile,
-                                    role: e.target.value as User["role"],
-                                })
-                            }
-                        >
-                            <option value="USER">User</option>
-                            <option value="ADMIN">Admin</option>
-                            <option value="FACULTY">Faculty</option>
-                            <option value="STUDENT">Student</option>
-                        </FormControl>
+                        {/* Role - Editable for ADMIN, read-only for others */}
+                        {isAdmin ? (
+                            <FormControl
+                                as="select"
+                                value={profile.role || "STUDENT"}
+                                className="mb-2"
+                                id="wd-role"
+                                onChange={(e) =>
+                                    setProfile({
+                                        ...profile,
+                                        role: e.target.value as User["role"],
+                                    })
+                                }
+                            >
+                                <option value="USER">User</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="FACULTY">Faculty</option>
+                                <option value="STUDENT">Student</option>
+                            </FormControl>
+                        ) : (
+                            <FormControl
+                                type="text"
+                                value={profile.role || ""}
+                                className="mb-2"
+                                id="wd-role"
+                                readOnly
+                                disabled
+                                style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                            />
+                        )}
 
                         <Button
                             onClick={signout}

@@ -1,15 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-    Row,
-    Col,
-    Card,
-    FormControl,
-    Button,
-    Form,
+    Row, Col, Card, FormControl, Button, Form,
 } from "react-bootstrap";
-import { useSelector, useDispatch } from "react-redux";
-import type { RootState } from "../../store";
+import { useAppSelector, useAppDispatch } from "../../store";
 import {
     type Assignment,
     addAssignment,
@@ -20,17 +14,14 @@ import * as assignmentsClient from "./client";
 export default function AssignmentEditor() {
     const { cid, aid } = useParams<{ cid: string; aid: string }>();
     const navigate = useNavigate();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
-    // Redux 中已存在的作业列表
-    const allAssignments: Assignment[] = useSelector(
-        (state: RootState) => state.assignmentsReducer.assignments
+    const allAssignments: Assignment[] = useAppSelector(
+        state => state.assignment.assignments
     );
 
-    // 如果是编辑现有作业，从 Redux 里先拿
     const existing = allAssignments.find((a) => a._id === aid);
 
-    // 本地表单状态
     const [formState, setFormState] = useState<Partial<Assignment>>({
         _id: "new",
         courseId: cid || "",
@@ -42,7 +33,6 @@ export default function AssignmentEditor() {
         description: "",
     });
 
-    // 初始加载：如果 aid !== "new"，拉后端或 Redux
     useEffect(() => {
         if (aid && aid !== "new") {
             if (!existing) {
@@ -60,18 +50,16 @@ export default function AssignmentEditor() {
 
     if (!formState) return null;
 
-    // 保存按钮
     const onSave = async () => {
         let saved: Assignment;
         if (aid === "new") {
-            // 新建
+
             saved = await assignmentsClient.createAssignment(
                 cid!,
                 formState as Omit<Assignment, "_id">
             );
             dispatch(addAssignment(saved));
         } else {
-            // 更新
             saved = await assignmentsClient.updateAssignment(
                 aid!,
                 formState as Partial<Assignment>
@@ -81,7 +69,6 @@ export default function AssignmentEditor() {
         navigate(`/Kambaz/Courses/${cid}/Assignments`);
     };
 
-    // 取消按钮
     const onCancel = () => {
         navigate(`/Kambaz/Courses/${cid}/Assignments`);
     };

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useAppSelector, useAppDispatch } from "../../store";
 import {
     addModule,
     editModule,
@@ -17,13 +17,14 @@ import LessonControlButtons from "./LessonControlButtons";
 import ListGroup from "react-bootstrap/ListGroup";
 import FormControl from "react-bootstrap/FormControl";
 import { BsGripVertical } from "react-icons/bs";
-import type { RootState } from "../../store";
 
 export default function Modules() {
     const { cid } = useParams<{ cid: string }>();
     const [moduleName, setModuleName] = useState<string>("");
-    const modules = useSelector((state: RootState) => state.modulesReducer.modules as Module[]);
-    const dispatch = useDispatch();
+
+    // 用 useAppSelector
+    const modules = useAppSelector(state => state.modules.modules as Module[]);
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
         void (async () => {

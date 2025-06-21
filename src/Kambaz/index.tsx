@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "./store"; // ← 推荐自定义 hook
 
 import KambazNavigation from "./Navigation";
 import Dashboard from "./Dashboard";
@@ -8,8 +8,6 @@ import Courses from "./Courses";
 import Account from "./Account";
 import ProtectedRoute from "./Account/ProtectedRoute";
 import Session from "./Account/Session";
-import type { RootState as AppState } from "./store";
-import type { AccountState } from "./Account/reducer";
 
 import {
     fetchAllCourses,
@@ -17,8 +15,6 @@ import {
     updateCourse as updateCourseClient,
     deleteCourse as deleteCourseClient,
 } from "./Courses/client";
-
-// ① 新增这一行
 import * as enrollmentsClient from "./Enrollments/client";
 
 export interface Course {
@@ -35,14 +31,9 @@ export interface Course {
     enrolled?: boolean;
 }
 
-type RootState = AppState & {
-    accountReducer: AccountState;
-};
-
 export default function Kambaz() {
-    const currentUser = useSelector(
-        (state: RootState) => state.accountReducer.currentUser
-    );
+    // 👇 用 useAppSelector 正确读取 currentUser
+    const currentUser = useAppSelector(state => state.account.currentUser);
 
     const [courses, setCourses] = useState<Course[]>([]);
     const [courseForm, setCourseForm] = useState<Course>({
@@ -59,19 +50,21 @@ export default function Kambaz() {
     });
     const [enrolling, setEnrolling] = useState<boolean>(false);
 
-    // ② refreshCourses 统一读 enrollments + courses
+    // 课程数据加载
     const refreshCourses = async () => {
         if (!currentUser) {
             setCourses([]);
             return;
         }
         if (enrolling) {
-            // "所有课程"：标记哪些已经 enroll
+            // "所有课程"：标记已enroll
             const all = await fetchAllCourses();
             const mine: Course[] = await enrollmentsClient.fetchEnrollments();
             setCourses(
                 all.map((c) =>
-                    mine.some((m: Course) => m._id === c._id) ? { ...c, enrolled: true } : c
+                    mine.some((m: Course) => m._id === c._id)
+                        ? { ...c, enrolled: true }
+                        : c
                 )
             );
         } else {
@@ -134,7 +127,6 @@ export default function Kambaz() {
         setCourseForm({ ...c });
     };
 
-    // ③ 改用 enrollmentsClient.enrollCourse / .unenrollCourse
     const updateEnrollment = async (courseId: string, enroll: boolean) => {
         if (!currentUser) return;
         if (enroll) {
@@ -169,7 +161,7 @@ export default function Kambaz() {
                                         editCourse={editCourse}
                                         enrolling={enrolling}
                                         setEnrolling={setEnrolling}
-                                        updateEnrollment={updateEnrollment}  // 传给 Dashboard 使用
+                                        updateEnrollment={updateEnrollment}
                                     />
                                 </ProtectedRoute>
                             }

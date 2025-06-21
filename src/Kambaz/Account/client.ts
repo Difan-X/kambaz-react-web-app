@@ -23,6 +23,7 @@ export const signin = async (credentials: {
 export const signup = async (user: {
     username: string;
     password: string;
+    role: "FACULTY" | "STUDENT";
 }): Promise<User> => {
     const res = await axiosWithCredentials.post(`${USERS_API}/signup`, user);
     return res.data;

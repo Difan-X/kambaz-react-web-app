@@ -9,6 +9,7 @@ import {
     FormControl,
 } from "react-bootstrap";
 
+
 export interface Course {
     _id: string;
     name: string;
@@ -46,6 +47,7 @@ export default function Dashboard({
                                       updateEnrollment,
                                   }: DashboardProps) {
     const isEditing = courseForm._id !== "0";
+
 
     return (
         <Container fluid className="p-3" id="wd-dashboard">
