@@ -1,63 +1,122 @@
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
+import ListGroup from "react-bootstrap/ListGroup";
+import FormControl from "react-bootstrap/FormControl";
+import { BsGripVertical } from "react-icons/bs";
+
+import ModulesControls from "./ModulesControls";
+import ModuleControlButtons from "./ModuleControlButtons";
+import LessonControlButtons from "./LessonControlButtons";
+
+import { useSelector, useDispatch } from "react-redux";
+import {
+    addModule,
+    deleteModule,
+    updateModule,
+    editModule,
+} from "./reducer";
+
+// Correct import of RootState from the store
+import type { RootState } from "../../store";
+
 export default function Modules() {
+    // 1. Extract course ID from URL
+    const { cid } = useParams<{ cid: string }>();
+
+    // 2. Local state for new module input
+    const [moduleName, setModuleName] = useState<string>("");
+
+    // 3. Read modules array from Redux store
+    const modules = useSelector((state: RootState) => state.modulesReducer.modules);
+
+    // 4. Get dispatch function
+    const dispatch = useDispatch();
+
+    // 5. Filter only this course's modules
+    const courseModules = modules.filter((m) => m.course === cid);
+
     return (
         <div id="wd-modules">
-            {/* Module controls */}
-            <div id="wd-modules-controls" style={{ marginBottom: 16 }}>
-                <button id="wd-collapse-all">Collapse All</button>
-                <button id="wd-view-progress" style={{ marginLeft: 8 }}>
-                    View Progress
-                </button>
-                <select id="wd-publish-all" style={{ marginLeft: 8 }}>
-                    <option value="publish-all">Publish All</option>
-                    <option value="publish-modules-only">Publish Modules Only</option>
-                    <option value="publish-all-items">
-                        Publish All Modules & Items
-                    </option>
-                </select>
-                <button id="wd-add-module" style={{ marginLeft: 8 }}>
-                    + Module
-                </button>
-            </div>
+            {/* Pass down moduleName, setModuleName, and addModule callback */}
+            <ModulesControls
+                moduleName={moduleName}
+                setModuleName={setModuleName}
+                addModule={() => {
+                    dispatch(addModule({ name: moduleName, course: cid! }));
+                    setModuleName("");
+                }}
+            />
 
-            {/* Module list */}
-            <ul id="wd-modules-list">
-                <li className="wd-module">
-                    <strong>Week 1</strong>
-                    <ul className="wd-lessons">
-                        <li>
-                            LEARNING OBJECTIVES
-                            <ul>
-                                <li>Introduction to the course</li>
-                                <li>Learn what is Web Development</li>
-                            </ul>
-                        </li>
-                        <li>
-                            READING
-                            <ul>
-                                <li>Full Stack Developer – Chapter 1 – Introduction</li>
-                                <li>
-                                    Full Stack Developer – Chapter 2 – Creating User Interfaces
-                                </li>
-                            </ul>
-                        </li>
-                        <li>
-                            SLIDES
-                            <ul>
-                                <li>Introduction to Web Development</li>
-                                <li>Creating an HTTP server with Node.js</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
+            <br />
+            <br />
+            <br />
 
-                <li className="wd-module">
-                    <strong>Week 2</strong>
-                    <ul className="wd-lessons">
-                        <li>Lecture 1 – Advanced JavaScript</li>
-                        <li>Lecture 2 – State Management</li>
-                    </ul>
-                </li>
-            </ul>
+            <ListGroup className="rounded-0" id="wd-modules-list">
+                {courseModules.map((mod: { _id: string; course: string; name: string; lessons: string[]; editing?: boolean }) => (
+                    <ListGroup.Item
+                        key={mod._id}
+                        className="wd-module p-0 mb-5 fs-5 border-gray"
+                    >
+                        {/* ===================== */}
+                        {/*  Module Title Row   */}
+                        {/* ===================== */}
+                        <div
+                            className="wd-title p-3 ps-2 bg-secondary d-flex justify-content-between align-items-center"
+                        >
+                            <div className="d-flex align-items-center w-75">
+                                {/* Drag‐handle icon */}
+                                <BsGripVertical className="me-2 fs-3 text-danger" />
+
+                                {/* If not editing, show plain name; if editing, show input */}
+                                {!mod.editing && <span className="flex-grow-1">{mod.name}</span>}
+                                {mod.editing && (
+                                    <FormControl
+                                        className="w-50 d-inline-block"
+                                        defaultValue={mod.name}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                            dispatch(updateModule({ ...mod, name: e.target.value }))
+                                        }
+                                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                                            if (e.key === "Enter") {
+                                                dispatch(updateModule({ ...mod, editing: false }));
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </div>
+
+                            {/* ModuleControlButtons with deleteModule and editModule */}
+                            <ModuleControlButtons
+                                moduleId={mod._id}
+                                deleteModule={(id: string) => dispatch(deleteModule(id))}
+                                editModule={(id: string) => dispatch(editModule(id))}
+                            />
+                        </div>
+
+                        {/* ===================== */}
+                        {/*   Lessons List       */}
+                        {/* ===================== */}
+                        {mod.lessons && (
+                            <ListGroup className="wd-lessons rounded-0">
+                                {mod.lessons.map((lesson: string, idx: number) => (
+                                    <ListGroup.Item
+                                        key={idx}
+                                        className="wd-lesson p-3 ps-3 d-flex justify-content-between align-items-center"
+                                    >
+                                        <div className="d-flex align-items-center">
+                                            <BsGripVertical className="me-2 fs-3 text-danger" />
+                                            <span>{lesson}</span>
+                                        </div>
+                                        <div className="d-flex align-items-center">
+                                            <LessonControlButtons />
+                                        </div>
+                                    </ListGroup.Item>
+                                ))}
+                            </ListGroup>
+                        )}
+                    </ListGroup.Item>
+                ))}
+            </ListGroup>
         </div>
     );
 }
